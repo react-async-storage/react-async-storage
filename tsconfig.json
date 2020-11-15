@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "allowJs": false,
+        "allowSyntheticDefaultImports": true,
+        "lib": ["es6"],
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "noEmit": true,
+        "strict": true,
+        "target": "esnext",
+        "resolveJsonModule": true
+    },
+    "exclude": ["node_modules"]
+}
