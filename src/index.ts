@@ -6,11 +6,6 @@ export interface CacheObject<T> {
     data: T
 }
 
-const now = (): number => new Date().getTime()
-const prefixed = (key: string): string => `${context.prefix}_${key}`
-const isStale = (expiration?: number): boolean =>
-    !!expiration && expiration < now()
-
 const context: {
     prefix: string
     cache: Map<any, Partial<CacheObject<any>>>
@@ -19,17 +14,18 @@ const context: {
     cache: new Map(),
 }
 
-export async function getCacheItem<T = any>({
-    defaultValue,
-    key,
-    memoize = true,
-    removeItem = false,
-}: {
-    defaultValue?: T
-    key: string
-    memoize?: boolean
-    removeItem?: boolean
-}): Promise<T | null> {
+const now = (): number => new Date().getTime()
+const prefixed = (key: string): string => `${context.prefix}_${key}`
+const isStale = (expiration?: number): boolean =>
+    !!expiration && expiration < now()
+
+export async function getCacheItem<T = any>(
+    key: string,
+    fallback?: T | null,
+    options?: { removeItem: boolean; memoize: boolean },
+): Promise<T | null> {
+    let removeItem = options?.removeItem ?? false
+    const memoize = options?.memoize ?? true
     const record = context.cache.get(prefixed(key))
     if (!isStale(record?.expiration)) {
         if (record?.data && memoize) {
@@ -47,25 +43,20 @@ export async function getCacheItem<T = any>({
         removeItem = true
     }
     if (removeItem) {
-        await removeCacheItem({ key })
+        await removeCacheItem(key)
     }
-    return defaultValue ?? null
+    return fallback ?? null
 }
 
-export async function setCacheItem({
-    key,
-    data,
-    maxAge,
-    memoize = true,
-}: {
-    key: string
-    data: any
-    maxAge?: number
-    memoize?: boolean
-}): Promise<void> {
-    const cacheObject: Record<string, any> = { data, memoize }
-    if (maxAge) {
-        cacheObject['expiration'] = now() + maxAge
+export async function setCacheItem(
+    key: string,
+    data: any,
+    options?: { maxAge?: number; memoize?: boolean },
+): Promise<void> {
+    const memoize = options?.memoize ?? true
+    const cacheObject: CacheObject<any> = { data, memoize }
+    if (options?.maxAge) {
+        cacheObject['expiration'] = now() + options.maxAge
     }
     if (memoize) {
         context.cache.set(prefixed(key), cacheObject)
@@ -73,36 +64,27 @@ export async function setCacheItem({
     await AsyncStorage.setItem(prefixed(key), JSON.stringify(cacheObject))
 }
 
-export async function removeCacheItem({ key }: { key: string }): Promise<void> {
+export async function removeCacheItem(key: string): Promise<void> {
     await AsyncStorage.removeItem(prefixed(key))
     context.cache.delete(prefixed(key))
 }
 
-export async function mergeCacheItem({
-    key,
-    value,
-}: {
-    key: string
-    value: any
-}): Promise<void> {
+export async function mergeCacheItem(key: string, value: any): Promise<void> {
     await AsyncStorage.mergeItem(prefixed(key), JSON.stringify(value))
 }
 
-export function cacheAsync<R extends Promise<any>>({
-    action,
-    maxAge,
-}: {
-    action: (...args: any[]) => Promise<R>
-    maxAge: number
-}): (...args: any[]) => Promise<R> {
+export function cacheAsync<R extends Promise<any>>(
+    action: (...args: any[]) => Promise<R>,
+    maxAge: number,
+): (...args: any[]) => Promise<R> {
     return async (...args: any[]) => {
         const key = JSON.stringify(args)
-        const cachedData = await getCacheItem({ key })
+        const cachedData = await getCacheItem(key)
         if (cachedData) {
             return cachedData as R
         }
         const data = await action(...args)
-        await setCacheItem({ key, data, maxAge })
+        await setCacheItem(key, data, { maxAge })
         return data as R
     }
 }
