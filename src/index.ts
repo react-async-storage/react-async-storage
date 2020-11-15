@@ -8,14 +8,17 @@ export interface CacheObject<T> {
 
 const context: {
     prefix: string
+    version: string
     cache: Map<any, Partial<CacheObject<any>>>
 } = {
     prefix: 'RNC',
+    version: 'NONE',
     cache: new Map(),
 }
 
 const now = (): number => new Date().getTime()
-const prefixed = (key: string): string => `${context.prefix}_${key}`
+const prefixed = (key: string): string =>
+    `${context.prefix}:::${context.version}:::${key}`
 const isStale = (expiration?: number): boolean =>
     !!expiration && expiration < now()
 
@@ -78,7 +81,7 @@ export function cacheAsync<R extends Promise<any>>(
     maxAge: number,
 ): (...args: any[]) => Promise<R> {
     return async (...args: any[]) => {
-        const key = JSON.stringify(args)
+        const key = `${action.name ?? 'NAMELESS'}_${JSON.stringify(args)}`
         const cachedData = await getCacheItem(key)
         if (cachedData) {
             return cachedData as R
@@ -89,9 +92,18 @@ export function cacheAsync<R extends Promise<any>>(
     }
 }
 
-export async function cacheSetup(cachePrefix?: string): Promise<void> {
+export async function cacheSetup({
+    cachePrefix,
+    version,
+}: {
+    cachePrefix?: string
+    version?: string
+}): Promise<void> {
     if (cachePrefix) {
         context.prefix = cachePrefix
+    }
+    if (version) {
+        context.version = version
     }
 
     const keys = await AsyncStorage.getAllKeys()
@@ -99,11 +111,18 @@ export async function cacheSetup(cachePrefix?: string): Promise<void> {
 
     if (filteredKeys.length) {
         const records = await AsyncStorage.multiGet(filteredKeys)
+        const outDatedRecords = records
+            .filter((record) => record[0].split(':::')[1] !== context.version)
+            .map((record) => record[0])
         const nullRecords = records
             .filter((record) => !record[1])
             .map((record) => record[0])
         const parsedRecords = records
-            .filter((record) => !nullRecords.includes(record[0]))
+            .filter(
+                (record) =>
+                    !nullRecords.includes(record[0]) &&
+                    !outDatedRecords.includes(record[0]),
+            )
             .map(
                 ([key, value]) =>
                     [key, JSON.parse(value ?? '')] as [
@@ -115,15 +134,22 @@ export async function cacheSetup(cachePrefix?: string): Promise<void> {
             .filter((record) => isStale(record[1].expiration))
             .map((record) => record[0])
 
-        if (nullRecords.length || staleRecords.length) {
-            await AsyncStorage.multiRemove([...nullRecords, ...staleRecords])
+        if (
+            outDatedRecords.length ||
+            nullRecords.length ||
+            staleRecords.length
+        ) {
+            await AsyncStorage.multiRemove([
+                ...outDatedRecords,
+                ...nullRecords,
+                ...staleRecords,
+            ])
         }
 
-        context.cache = new Map([
-            ...context.cache,
-            ...parsedRecords.filter(
+        context.cache = new Map(
+            parsedRecords.filter(
                 ([key, value]) => !staleRecords.includes(key) && value.memoize,
             ),
-        ])
+        )
     }
 }
