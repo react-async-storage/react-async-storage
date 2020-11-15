@@ -7,10 +7,12 @@ export interface CacheObject<T> {
 }
 
 const context: {
+    init: boolean
     prefix: string
     version: string
     cache: Map<any, Partial<CacheObject<any>>>
 } = {
+    init: false,
     prefix: 'RNC',
     version: 'NONE',
     cache: new Map(),
@@ -21,6 +23,8 @@ const prefixed = (key: string): string =>
     `${context.prefix}:::${context.version}:::${key}`
 const isStale = (expiration?: number): boolean =>
     !!expiration && expiration < now()
+
+export const cacheHasItem = (key: string) => context.cache.has(prefixed(key))
 
 export async function getCacheItem<T = any>(
     key: string,
@@ -76,7 +80,7 @@ export async function mergeCacheItem(key: string, value: any): Promise<void> {
     await AsyncStorage.mergeItem(prefixed(key), JSON.stringify(value))
 }
 
-export function cacheAsync<R extends Promise<any>>(
+export function memoizeAsync<R extends Promise<any>>(
     action: (...args: any[]) => Promise<R>,
     maxAge: number,
 ): (...args: any[]) => Promise<R> {
@@ -92,19 +96,17 @@ export function cacheAsync<R extends Promise<any>>(
     }
 }
 
-export async function cacheSetup({
-    cachePrefix,
-    version,
-}: {
-    cachePrefix?: string
+export async function cacheInit(options?: {
+    prefix?: string
     version?: string
 }): Promise<void> {
-    if (cachePrefix) {
-        context.prefix = cachePrefix
+    if (context.init) {
+        console.warn('<rn-cache-wrapper> cacheInit should be called only once')
+        return
     }
-    if (version) {
-        context.version = version
-    }
+
+    context.prefix = options?.prefix ?? context.prefix
+    context.version = options?.version ?? context.version
 
     const keys = await AsyncStorage.getAllKeys()
     const filteredKeys = keys.filter((key) => key.includes(context.prefix))
@@ -152,4 +154,14 @@ export async function cacheSetup({
             ),
         )
     }
+    context.init = true
+}
+
+export default {
+    has: cacheHasItem,
+    get: getCacheItem,
+    set: setCacheItem,
+    remove: removeCacheItem,
+    merge: mergeCacheItem,
+    memoize: memoizeAsync,
 }
