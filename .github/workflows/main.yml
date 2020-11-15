@@ -1,4 +1,5 @@
-name: pipeline
+name: CI
+
 on: [push]
 jobs:
     eslint-check-script:
