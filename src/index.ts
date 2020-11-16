@@ -1,4 +1,4 @@
-import { driverWithoutSerialization } from '@aveq-research/localforage-asyncstorage-driver'
+import { driverWithDefaultSerialization } from '@aveq-research/localforage-asyncstorage-driver'
 import { useEffect } from 'react'
 import AsyncStorage from '@react-native-community/async-storage'
 import localforage from 'localforage'
@@ -34,7 +34,7 @@ const _context: {
 
 const now = (): number => new Date().getTime()
 const isStale = (expiration?: number) => !!expiration && expiration < now()
-const nameed = (key: string) =>
+const prefixed = (key: string) =>
     `${_context.name}:::${_context.version}:::${key}`
 const checkInit = (): void => {
     if (!_context.init)
@@ -43,7 +43,7 @@ const checkInit = (): void => {
 
 export function cacheHasItem(key: string) {
     checkInit()
-    return _context.cache.has(nameed(key))
+    return _context.cache.has(prefixed(key))
 }
 
 export async function getCacheItem<T = any>(
@@ -53,13 +53,13 @@ export async function getCacheItem<T = any>(
 ): Promise<T | null> {
     checkInit()
     let removeItem = false
-    const record = _context.cache.get(nameed(key))
+    const record = _context.cache.get(prefixed(key))
     if (!isStale(record?.expiration)) {
         if (record?.data) {
             return record.data as T
         }
         const storedValue = await _context.store.getItem<CacheObject<T>>(
-            nameed(key),
+            prefixed(key),
         )
         if (storedValue) {
             const { expiration, data } = storedValue
@@ -90,14 +90,14 @@ export async function setCacheItem(
     if (maxAge) {
         cacheObject['expiration'] = now() + maxAge
     }
-    _context.cache.set(nameed(key), cacheObject)
-    await _context.store.setItem(nameed(key), JSON.stringify(cacheObject))
+    _context.cache.set(prefixed(key), cacheObject)
+    await _context.store.setItem(prefixed(key), cacheObject)
 }
 
 export async function removeCacheItem(key: string): Promise<void> {
     checkInit()
-    await _context.store.removeItem(nameed(key))
-    _context.cache.delete(nameed(key))
+    await _context.store.removeItem(prefixed(key))
+    _context.cache.delete(prefixed(key))
 }
 
 export async function mergeCacheItem<T>(key: string, value: T): Promise<T> {
@@ -177,11 +177,7 @@ export async function allRecords(): Promise<
     const filteredKeys = keys.filter((key) => key.includes(_context.name))
 
     if (filteredKeys.length) {
-        const records = await multiGetItem(filteredKeys)
-        return records.map(([key, value]) => [
-            key,
-            value ? JSON.parse(value) : null,
-        ])
+        return await multiGetItem(filteredKeys)
     }
     return []
 }
@@ -220,9 +216,7 @@ export async function pruneRecords(): Promise<void> {
     }
 }
 
-export function cacheInit(
-    options: LocalForageOptions & { serializer?: LocalForageSerializer },
-): void {
+export function cacheInit(options: LocalForageOptions): void {
     if (_context.init) {
         throw '<rn-cache-wrapper> cacheInit should be called only once'
     }
@@ -233,7 +227,7 @@ export function cacheInit(
     useEffect(() => {
         ;(async () => {
             if (_context.rn) {
-                const driver = driverWithoutSerialization()
+                const driver = driverWithDefaultSerialization()
                 await localforage.defineDriver(driver)
                 await localforage.setDriver(driver._driver)
                 if (options?.driver) {
@@ -255,12 +249,15 @@ export function cacheInit(
 
 export default {
     localforage,
-    has: cacheHasItem,
     get: getCacheItem,
-    set: setCacheItem,
-    remove: removeCacheItem,
-    merge: mergeCacheItem,
+    has: cacheHasItem,
     memoize: memoizeAsync,
-    records: allRecords,
+    merge: mergeCacheItem,
+    multiGet: multiGetItem,
+    multiRemove: multiRemoveItem,
+    multiSet: multiSetItem,
     prune: pruneRecords,
+    records: allRecords,
+    remove: removeCacheItem,
+    set: setCacheItem,
 }
