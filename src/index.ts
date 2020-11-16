@@ -1,5 +1,7 @@
+import { driverWithoutSerialization } from '@aveq-research/localforage-asyncstorage-driver'
 import { useEffect } from 'react'
 import AsyncStorage from '@react-native-community/async-storage'
+import localforage from 'localforage'
 import merge from 'lodash.merge'
 
 export interface CacheObject<T> {
@@ -15,23 +17,33 @@ export enum Errors {
 const _context: {
     cache: Map<any, Partial<CacheObject<any>>>
     init: boolean
-    prefix: string
-    version: string
+    name: string
+    rn: boolean
+    store: LocalForage
+    version: number
 } = {
     cache: new Map(),
     init: false,
-    prefix: 'RNC',
-    version: 'NONE',
+    name: 'RNC',
+    rn:
+        navigator?.product === 'ReactNative' &&
+        typeof AsyncStorage !== 'undefined',
+    store: localforage,
+    version: 1.0,
 }
 
 const now = (): number => new Date().getTime()
-const prefixed = (key: string): string =>
-    `${_context.prefix}:::${_context.version}:::${key}`
-const isStale = (expiration?: number): boolean =>
-    !!expiration && expiration < now()
+const isStale = (expiration?: number) => !!expiration && expiration < now()
+const nameed = (key: string) =>
+    `${_context.name}:::${_context.version}:::${key}`
+const checkInit = (): void => {
+    if (!_context.init)
+        throw '<rn-cache-wrapper> cacheInit must be called before interacting with the cache'
+}
 
 export function cacheHasItem(key: string) {
-    return _context.cache.has(prefixed(key))
+    checkInit()
+    return _context.cache.has(nameed(key))
 }
 
 export async function getCacheItem<T = any>(
@@ -39,17 +51,20 @@ export async function getCacheItem<T = any>(
     fallback?: T | null,
     throwErrors = false,
 ): Promise<T | null> {
+    checkInit()
     let removeItem = false
-    const record = _context.cache.get(prefixed(key))
+    const record = _context.cache.get(nameed(key))
     if (!isStale(record?.expiration)) {
         if (record?.data) {
             return record.data as T
         }
-        const storedValue = await AsyncStorage.getItem(prefixed(key))
+        const storedValue = await _context.store.getItem<CacheObject<T>>(
+            nameed(key),
+        )
         if (storedValue) {
-            const { expiration, data } = JSON.parse(storedValue)
+            const { expiration, data } = storedValue
             if (!isStale(expiration)) {
-                return data as T
+                return data
             }
             removeItem = true
         }
@@ -70,24 +85,23 @@ export async function setCacheItem(
     data: any,
     maxAge?: number,
 ): Promise<void> {
+    checkInit()
     const cacheObject: CacheObject<any> = { data }
     if (maxAge) {
         cacheObject['expiration'] = now() + maxAge
     }
-    _context.cache.set(prefixed(key), cacheObject)
-    await AsyncStorage.setItem(prefixed(key), JSON.stringify(cacheObject))
+    _context.cache.set(nameed(key), cacheObject)
+    await _context.store.setItem(nameed(key), JSON.stringify(cacheObject))
 }
 
 export async function removeCacheItem(key: string): Promise<void> {
-    await AsyncStorage.removeItem(prefixed(key))
-    _context.cache.delete(prefixed(key))
+    checkInit()
+    await _context.store.removeItem(nameed(key))
+    _context.cache.delete(nameed(key))
 }
 
 export async function mergeCacheItem<T>(key: string, value: T): Promise<T> {
-    /* 
-        the async-storage library is using an outdated implementation of merge, 
-        so we are not relying on it at all 
-    */
+    checkInit()
     if (!value || typeof value !== 'object') {
         throw '<rn-cache-wrapper> merge value must be of typeof object'
     }
@@ -101,11 +115,49 @@ export async function mergeCacheItem<T>(key: string, value: T): Promise<T> {
     return mergedValue
 }
 
+export async function multiGetItem(keys: string[]): Promise<[string, any][]> {
+    checkInit()
+    const promises = keys.map(
+        async (key: string): Promise<[string, any]> => {
+            const cachedObject = await getCacheItem(key)
+            return [key, cachedObject]
+        },
+    )
+    return await Promise.all(promises)
+}
+
+export async function multiSetItem(
+    values: {
+        key: string
+        data: any
+        maxAge?: number
+    }[],
+): Promise<void> {
+    checkInit()
+    const promises = values.map(
+        async ({ key, data, maxAge }): Promise<void> => {
+            await setCacheItem(key, data, maxAge ?? undefined)
+        },
+    )
+    await Promise.all(promises)
+}
+
+export async function multiRemoveItem(keys: string[]): Promise<void> {
+    checkInit()
+    const promises = keys.map(
+        async (key: string): Promise<void> => {
+            await removeCacheItem(key)
+        },
+    )
+    await Promise.all(promises)
+}
+
 export function memoizeAsync<R>(
     fn: (...args: any[]) => Promise<R>,
     maxAge: number,
 ): (...args: any[]) => Promise<R> {
     return async (...args: any[]) => {
+        checkInit()
         const key = `${fn.name ?? 'NAMELESS'}_${JSON.stringify(args)}`
         const cachedData = await getCacheItem(key)
         if (cachedData) {
@@ -120,11 +172,12 @@ export function memoizeAsync<R>(
 export async function allRecords(): Promise<
     [string, CacheObject<any> | null][]
 > {
-    const keys = await AsyncStorage.getAllKeys()
-    const filteredKeys = keys.filter((key) => key.includes(_context.prefix))
+    checkInit()
+    const keys = await _context.store.keys()
+    const filteredKeys = keys.filter((key) => key.includes(_context.name))
 
     if (filteredKeys.length) {
-        const records = await AsyncStorage.multiGet(filteredKeys)
+        const records = await multiGetItem(filteredKeys)
         return records.map(([key, value]) => [
             key,
             value ? JSON.parse(value) : null,
@@ -134,12 +187,13 @@ export async function allRecords(): Promise<
 }
 
 export async function pruneRecords(): Promise<void> {
+    checkInit()
     const records = await allRecords()
     if (records.length) {
         const invalidRecords = records
             .filter(
                 (record) =>
-                    record[0].split(':::')[1] !== _context.version ||
+                    record[0].split(':::')[1] !== _context.version.toString() ||
                     !record[1],
             )
             .map((record) => record[0])
@@ -155,7 +209,7 @@ export async function pruneRecords(): Promise<void> {
         )
 
         if (invalidRecords.length) {
-            await AsyncStorage.multiRemove(invalidRecords)
+            await multiRemoveItem(invalidRecords)
         }
 
         _context.cache = new Map(
@@ -166,18 +220,33 @@ export async function pruneRecords(): Promise<void> {
     }
 }
 
-export function cacheInit(config?: {
-    prefix?: string
-    version?: string
-}): void {
+export function cacheInit(
+    options: LocalForageOptions & { serializer?: LocalForageSerializer },
+): void {
     if (_context.init) {
         throw '<rn-cache-wrapper> cacheInit should be called only once'
     }
-    _context.prefix = config?.prefix ?? _context.prefix
-    _context.version = config?.version ?? _context.version
+
+    _context.name = options?.name ?? _context.name
+    _context.version = options?.version ?? _context.version
 
     useEffect(() => {
         ;(async () => {
+            if (_context.rn) {
+                const driver = driverWithoutSerialization()
+                await localforage.defineDriver(driver)
+                await localforage.setDriver(driver._driver)
+                if (options?.driver) {
+                    delete options.driver
+                }
+            }
+
+            localforage.config({
+                ...options,
+                name: _context.name,
+                version: _context.version,
+            })
+            await localforage.ready()
             await pruneRecords()
             _context.init = true
         })()
@@ -185,6 +254,7 @@ export function cacheInit(config?: {
 }
 
 export default {
+    localforage,
     has: cacheHasItem,
     get: getCacheItem,
     set: setCacheItem,

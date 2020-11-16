@@ -1,7 +1,9 @@
 module.exports = {
     root: true,
     env: {
-        es6: true,
+        es2020: true,
+        node: true,
+        browser: true,
     },
     plugins: ['jest', 'sort-imports-es6-autofix'],
     extends: [
