@@ -24,6 +24,10 @@ module.exports = {
         '@typescript-eslint/no-unsafe-assignment': 0,
         '@typescript-eslint/prefer-nullish-coalescing': 2,
         '@typescript-eslint/prefer-optional-chain': 2,
+        '@typescript-eslint/no-floating-promises': [
+            'error',
+            { ignoreIIFE: true, ignoreVoid: true },
+        ],
         'sort-imports-es6-autofix/sort-imports-es6': 2,
     },
     overrides: [

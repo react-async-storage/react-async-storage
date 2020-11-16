@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import AsyncStorage from '@react-native-community/async-storage'
+import merge from 'lodash.merge'
 
 export interface CacheObject<T> {
     expiration?: number
@@ -6,35 +8,55 @@ export interface CacheObject<T> {
     data: T
 }
 
-const context: {
+export enum Errors {
+    CACHE_ERROR = 'CACHE_ERROR',
+    VALUE_ERROR = 'VALUE_ERROR',
+}
+
+interface Options {
+    removeItem?: boolean
+    memoize?: boolean
+    allowStale?: boolean
+    throwErrors?: boolean
+}
+
+const _context: {
+    cache: Map<any, Partial<CacheObject<any>>>
     init: boolean
+    options: Options
     prefix: string
     version: string
-    cache: Map<any, Partial<CacheObject<any>>>
 } = {
+    cache: new Map(),
     init: false,
+    options: {
+        memoize: true,
+        allowStale: false,
+        removeItem: true,
+        throwErrors: false,
+    },
     prefix: 'RNC',
     version: 'NONE',
-    cache: new Map(),
 }
 
 const now = (): number => new Date().getTime()
 const prefixed = (key: string): string =>
-    `${context.prefix}:::${context.version}:::${key}`
+    `${_context.prefix}:::${_context.version}:::${key}`
 const isStale = (expiration?: number): boolean =>
     !!expiration && expiration < now()
 
-export const cacheHasItem = (key: string) => context.cache.has(prefixed(key))
+export const cacheHasItem = (key: string) => _context.cache.has(prefixed(key))
 
 export async function getCacheItem<T = any>(
     key: string,
     fallback?: T | null,
-    options?: { removeItem: boolean; memoize: boolean },
+    options?: Options,
 ): Promise<T | null> {
-    let removeItem = options?.removeItem ?? false
-    const memoize = options?.memoize ?? true
-    const record = context.cache.get(prefixed(key))
-    if (!isStale(record?.expiration)) {
+    //eslint-disable-next-line
+    let { removeItem, memoize, allowStale, throwErrors } = { ..._context.options, ...options }
+
+    const record = _context.cache.get(prefixed(key))
+    if (!isStale(record?.expiration) || allowStale) {
         if (record?.data && memoize) {
             return record.data as T
         }
@@ -44,13 +66,18 @@ export async function getCacheItem<T = any>(
             if (!isStale(expiration)) {
                 return data as T
             }
+
             removeItem = true
         }
     } else {
         removeItem = true
     }
+
     if (removeItem) {
         await removeCacheItem(key)
+    }
+    if (throwErrors && !fallback) {
+        throw Errors.VALUE_ERROR
     }
     return fallback ?? null
 }
@@ -66,18 +93,43 @@ export async function setCacheItem(
         cacheObject['expiration'] = now() + options.maxAge
     }
     if (memoize) {
-        context.cache.set(prefixed(key), cacheObject)
+        _context.cache.set(prefixed(key), cacheObject)
     }
     await AsyncStorage.setItem(prefixed(key), JSON.stringify(cacheObject))
 }
 
 export async function removeCacheItem(key: string): Promise<void> {
     await AsyncStorage.removeItem(prefixed(key))
-    context.cache.delete(prefixed(key))
+    _context.cache.delete(prefixed(key))
 }
 
-export async function mergeCacheItem(key: string, value: any): Promise<void> {
-    await AsyncStorage.mergeItem(prefixed(key), JSON.stringify(value))
+export async function mergeCacheItem<T>(
+    key: string,
+    value: T,
+    lodash: false,
+): Promise<void> {
+    if (typeof value !== 'object') {
+        throw '<rn-cache-wrapper> merge value must be of typeof object'
+    }
+    const useLodashMerge = async () => {
+        const storedValue = await getCacheItem<T>(key, null, {
+            throwErrors: false,
+        })
+        if (storedValue === null || typeof storedValue !== 'object') {
+            throw Errors.VALUE_ERROR
+        }
+        const mergedValue = merge(storedValue, value)
+        await setCacheItem(key, mergedValue)
+    }
+    if (lodash) {
+        await useLodashMerge()
+    } else {
+        try {
+            await AsyncStorage.mergeItem(prefixed(key), JSON.stringify(value))
+        } catch (error) {
+            await useLodashMerge()
+        }
+    }
 }
 
 export function memoizeAsync<R extends Promise<any>>(
@@ -96,35 +148,37 @@ export function memoizeAsync<R extends Promise<any>>(
     }
 }
 
-export async function cacheInit(options?: {
-    prefix?: string
-    version?: string
-}): Promise<void> {
-    if (context.init) {
-        console.warn('<rn-cache-wrapper> cacheInit should be called only once')
-        return
-    }
-
-    context.prefix = options?.prefix ?? context.prefix
-    context.version = options?.version ?? context.version
-
+export async function allRecords(): Promise<
+    ReturnType<typeof AsyncStorage.multiGet>
+> {
     const keys = await AsyncStorage.getAllKeys()
-    const filteredKeys = keys.filter((key) => key.includes(context.prefix))
+    const filteredKeys = keys.filter((key) => key.includes(_context.prefix))
 
     if (filteredKeys.length) {
-        const records = await AsyncStorage.multiGet(filteredKeys)
-        const outDatedRecords = records
-            .filter((record) => record[0].split(':::')[1] !== context.version)
-            .map((record) => record[0])
-        const nullRecords = records
-            .filter((record) => !record[1])
-            .map((record) => record[0])
-        const parsedRecords = records
+        return await Promise.all(
+            filteredKeys.map(async (key) => {
+                const value = await getCacheItem(key, null, {
+                    throwErrors: false,
+                })
+                return [key, value] as [string, any]
+            }),
+        )
+    }
+    return []
+}
+
+export async function pruneRecords(): Promise<void> {
+    const records = await allRecords()
+    if (records.length) {
+        const invalidRecords = records
             .filter(
                 (record) =>
-                    !nullRecords.includes(record[0]) &&
-                    !outDatedRecords.includes(record[0]),
+                    record[0].split(':::')[1] !== _context.version ||
+                    !record[1],
             )
+            .map((record) => record[0])
+        const parsedRecords = records
+            .filter((record) => !invalidRecords.includes(record[0]))
             .map(
                 ([key, value]) =>
                     [key, JSON.parse(value ?? '')] as [
@@ -132,29 +186,43 @@ export async function cacheInit(options?: {
                         CacheObject<any>,
                     ],
             )
-        const staleRecords = parsedRecords
-            .filter((record) => isStale(record[1].expiration))
-            .map((record) => record[0])
+        invalidRecords.concat(
+            parsedRecords
+                .filter((record) => isStale(record[1].expiration))
+                .map((record) => record[0]),
+        )
 
-        if (
-            outDatedRecords.length ||
-            nullRecords.length ||
-            staleRecords.length
-        ) {
-            await AsyncStorage.multiRemove([
-                ...outDatedRecords,
-                ...nullRecords,
-                ...staleRecords,
-            ])
+        if (invalidRecords.length) {
+            await AsyncStorage.multiRemove(invalidRecords)
         }
 
-        context.cache = new Map(
+        _context.cache = new Map(
             parsedRecords.filter(
-                ([key, value]) => !staleRecords.includes(key) && value.memoize,
+                ([key, value]) =>
+                    value.memoize && !invalidRecords.includes(key),
             ),
         )
     }
-    context.init = true
+}
+
+export function cacheInit(config?: {
+    prefix?: string
+    version?: string
+    defaults?: Options
+}): void {
+    if (_context.init) {
+        throw '<rn-cache-wrapper> cacheInit should be called only once'
+    }
+    _context.options = { ..._context.options, ...config?.defaults }
+    _context.prefix = config?.prefix ?? _context.prefix
+    _context.version = config?.version ?? _context.version
+
+    useEffect(() => {
+        ;(async () => {
+            await pruneRecords()
+            _context.init = true
+        })()
+    }, [])
 }
 
 export default {
@@ -164,4 +232,6 @@ export default {
     remove: removeCacheItem,
     merge: mergeCacheItem,
     memoize: memoizeAsync,
+    records: allRecords,
+    prune: pruneRecords,
 }
