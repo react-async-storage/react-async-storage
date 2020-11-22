@@ -37,4 +37,9 @@ jobs:
             - name: Eslint Check
               run: yarn check:script
             - name: Test
-              run: yarn test
+              run: yarn test --coverage --ci
+            - name: Upload Coverage Report
+              uses: codecov/codecov-action@v1
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  file: ./coverage/coverage-final.json
