@@ -34,19 +34,11 @@ module.exports = {
     },
     overrides: [
         {
-            files: [
-                '*.{spec,test}.{ts,tsx}',
-                '**/__{mocks,tests}__/**/*.{ts,tsx}',
-            ],
+            files: ['*.{spec,test}.ts', '**/__{mocks,tests}__/**/*.ts'],
             env: {
                 'jest': true,
                 'jest/globals': true,
             },
         },
     ],
-    settings: {
-        react: {
-            version: 'detect',
-        },
-    },
 }
