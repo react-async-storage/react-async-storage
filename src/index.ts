@@ -14,8 +14,6 @@ enum Errors {
 
 const isRN = () => navigator?.product === 'ReactNative'
 const now = (): number => new Date().getTime()
-const isStale = (expiration?: number) => !!expiration && expiration < now()
-
 export default class CacheWrapper {
     init = false
     readonly name: string
@@ -36,9 +34,9 @@ export default class CacheWrapper {
 
     private _check(throwNoInit = true) {
         if (throwNoInit && !this.init) {
-            throw '<rn-cache-wrapper> cacheInit must be called before interacting with the cache'
+            throw '<R-Cache> config() must be called before interacting with the cache'
         } else if (!throwNoInit && this.init) {
-            throw '<rn-cache-wrapper> cacheInit must be called only once per instance'
+            throw '<R-Cache> config() must be called only once'
         }
     }
 
@@ -75,27 +73,15 @@ export default class CacheWrapper {
         throwErrors = false,
     ): Promise<T | null> {
         this._check()
-        let removeItem = false
-        const record = this.store.get(this._prefix(key))
-        if (!isStale(record?.expiration)) {
-            if (record?.data) {
+        const record = this.hasItem(key)
+            ? this.store.get(this._prefix(key))
+            : await this.localForage.getItem<CacheObject<T>>(this._prefix(key))
+        if (record) {
+            if (!record.expiration || record.expiration >= now()) {
                 return record.data as T
+            } else {
+                await this.removeItem(key)
             }
-            const storedValue = await this.localForage.getItem<CacheObject<T>>(
-                this._prefix(key),
-            )
-            if (storedValue) {
-                const { expiration, data } = storedValue
-                if (!isStale(expiration)) {
-                    return data
-                }
-                removeItem = true
-            }
-        } else {
-            removeItem = true
-        }
-        if (removeItem) {
-            await this.removeItem(key)
         }
         if (throwErrors && !fallback) {
             throw Errors.VALUE_ERROR
@@ -170,21 +156,9 @@ export default class CacheWrapper {
         await Promise.all(promises)
     }
 
-    memoize<R>(
-        fn: (...args: any[]) => Promise<R>,
-        key: string,
-        maxAge: number,
-    ): (...args: any[]) => Promise<R> {
-        this._check()
-        return async (...args: any[]) => {
-            const cachedData = await this.getItem(key)
-            if (cachedData) {
-                return cachedData as R
-            }
-            const data = await fn(...args)
-            await this.setItem(key, data, maxAge)
-            return data
-        }
+    async clear(cb?: (error: any) => void): Promise<void> {
+        await this.localForage.clear(cb)
+        this.store.clear()
     }
 
     async keys(filtered = true): Promise<string[]> {
@@ -220,7 +194,11 @@ export default class CacheWrapper {
 
             invalidRecords.concat(
                 parsedRecords
-                    .filter((record) => isStale(record[1]?.expiration))
+                    .filter(
+                        (record) =>
+                            record[1]?.expiration &&
+                            record[1].expiration < now(),
+                    )
                     .map((record) => record[0]),
             )
 

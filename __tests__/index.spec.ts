@@ -38,7 +38,7 @@ describe('CacheWrapper tests', () => {
                     await cache[methodName]()
                 } catch (error) {
                     expect(error).toBe(
-                        '<rn-cache-wrapper> cacheInit must be called before interacting with the cache',
+                        '<R-Cache> config() must be called before interacting with the cache',
                     )
                 }
             })
@@ -66,6 +66,74 @@ describe('CacheWrapper tests', () => {
             expect(cache.localForage._driver).toBe(
                 'rnAsyncStorageWrapper-withDefaultSerializer',
             )
+        })
+        it('raises an error when config() is called twice', async () => {
+            const cache = new CacheWrapper()
+            await cache.config()
+            try {
+                await cache.config()
+            } catch (error) {
+                expect(error).toBe(
+                    '<R-Cache> config() must be called only once',
+                )
+            }
+        })
+    })
+    describe('cache methods', () => {
+        const testValue = 'testValue 12345'
+        let cache: CacheWrapper
+        beforeEach(async () => {
+            cache = new CacheWrapper({ name: 'TestCacheWrapper' })
+            await cache.config()
+        })
+        afterEach(async () => {
+            await cache.clear()
+        })
+        describe('getItem', () => {
+            it('retrieves value without expiration correctly', async () => {
+                await cache.setItem('testValue', testValue)
+                expect(await cache.getItem('testValue')).toBe(testValue)
+            })
+            it('retrieves value with expiration correctly', async () => {
+                await cache.setItem('testValue', testValue, 10)
+                expect(cache.hasItem('testValue')).toBeTruthy()
+                await new Promise((r) => setTimeout(r, 200))
+                expect(cache.hasItem('testValue')).toBeTruthy()
+                expect(await cache.getItem('testValue')).toBeNull()
+                expect(cache.hasItem('testValue')).toBeFalsy()
+            })
+            it('throws error on no value when the option set to true', async () => {
+                expect(await cache.getItem('testValue')).toBeNull()
+                try {
+                    await cache.getItem('testValue', null, true)
+                } catch (error) {
+                    expect(error).toBe('VALUE_ERROR')
+                }
+            })
+            it('calls fallback when provided', async () => {
+                const fallback = 'fallback'
+                const result = await cache.getItem('testValue', fallback)
+                expect(result).toBe(fallback)
+            })
+            it('does not throw error when fallback is provided', async () => {
+                const fallback = 'fallback'
+                const result = await cache.getItem('testValue', fallback, true)
+                expect(result).toBe(fallback)
+            })
+        })
+        describe('setItem', () => {
+            it('sets items correctly without maxAge', async () => {
+                expect(await cache.getItem('testValue')).toBeNull()
+                await cache.setItem('testValue', testValue)
+                expect(await cache.getItem('testValue')).toBe(testValue)
+            })
+            it('sets items correctly with maxAge', async () => {
+                expect(await cache.getItem('testValue')).toBeNull()
+                await cache.setItem('testValue', testValue, 10)
+                expect(await cache.getItem('testValue')).toBe(testValue)
+                await new Promise((r) => setTimeout(r, 200))
+                expect(await cache.getItem('testValue')).toBeNull()
+            })
         })
     })
 })
