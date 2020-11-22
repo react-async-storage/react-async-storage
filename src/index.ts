@@ -28,36 +28,35 @@ export default class CacheWrapper {
         this.name = options?.name ?? 'ReactCacheWrapper'
         this.version = options?.version ?? 1.0
         this.options = options ?? {}
+        this.config = this.config.bind(this)
+        this.hasItem.bind(this)
+        this.getItem.bind(this)
+        this.setItem.bind(this)
+        this.removeItem.bind(this)
+        this.mergeItem.bind(this)
+        this.multiGetItem.bind(this)
+        this.multiSetItem.bind(this)
+        this.multiRemoveItem.bind(this)
+        this.memoize.bind(this)
+        this.keys.bind(this)
+        this.records.bind(this)
+        this.prune.bind(this)
     }
 
     private _prefix(key: string): string {
         return `${this.name}:::${this.version}:::${key}`
     }
 
-    private static _check<T extends CacheWrapper, K extends keyof T, R>(
-        throwNoInit = true,
-    ) {
-        return function (target: T, key: K, descriptor: PropertyDescriptor) {
-            const wrapped = descriptor.value as T[K]
-            if (typeof wrapped === 'function') {
-                Reflect.set(
-                    descriptor,
-                    'value',
-                    async function (...args: any[]) {
-                        if (throwNoInit && !target.init) {
-                            throw '<rn-cache-wrapper> cacheInit must be called before interacting with the cache'
-                        } else if (!throwNoInit && target.init) {
-                            throw '<rn-cache-wrapper> cacheInit must be called only once per instance'
-                        }
-                        return (await wrapped.apply(target, args)) as R
-                    },
-                )
-                return descriptor
-            }
+    private _check(throwNoInit = true) {
+        if (throwNoInit && !this.init) {
+            throw '<rn-cache-wrapper> cacheInit must be called before interacting with the cache'
+        } else if (!throwNoInit && this.init) {
+            throw '<rn-cache-wrapper> cacheInit must be called only once per instance'
         }
     }
 
     cache<R>(identifier: string, maxAge: number) {
+        this._check(false)
         // eslint-disable-next-line @typescript-eslint/unbound-method
         const memoize = this.memoize
         // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -85,8 +84,8 @@ export default class CacheWrapper {
         }
     }
 
-    @CacheWrapper._check(false)
     async config(): Promise<void> {
+        this._check(false)
         if (isRN()) {
             const driver = driverWithDefaultSerialization()
             await localforage.defineDriver(driver)
@@ -103,21 +102,21 @@ export default class CacheWrapper {
         })
 
         await localforage.ready()
-        await this.prune()
         this.init = true
+        await this.prune()
     }
 
-    @CacheWrapper._check()
     hasItem(key: string): boolean {
+        this._check()
         return this.store.has(this._prefix(key))
     }
 
-    @CacheWrapper._check()
     async getItem<T = any>(
         key: string,
         fallback?: T | null,
         throwErrors = false,
     ): Promise<T | null> {
+        this._check()
         let removeItem = false
         const record = this.store.get(this._prefix(key))
         if (!isStale(record?.expiration)) {
@@ -146,8 +145,8 @@ export default class CacheWrapper {
         return fallback ?? null
     }
 
-    @CacheWrapper._check()
     async setItem(key: string, data: any, maxAge?: number): Promise<void> {
+        this._check()
         const cacheObject: CacheObject<any> = { data }
         if (maxAge) {
             cacheObject['expiration'] = now() + maxAge
@@ -156,14 +155,14 @@ export default class CacheWrapper {
         await this.localForage.setItem(this._prefix(key), cacheObject)
     }
 
-    @CacheWrapper._check()
     async removeItem(key: string): Promise<void> {
+        this._check()
         await this.localForage.removeItem(this._prefix(key))
         this.store.delete(this._prefix(key))
     }
 
-    @CacheWrapper._check()
     async mergeItem<T>(key: string, value: T): Promise<T> {
+        this._check()
         if (!value || typeof value !== 'object') {
             throw '<rn-cache-wrapper> merge value must be of typeof object'
         }
@@ -176,8 +175,8 @@ export default class CacheWrapper {
         return mergedValue
     }
 
-    @CacheWrapper._check()
     async multiGetItem(keys: string[]): Promise<[string, any][]> {
+        this._check()
         const promises = keys.map(
             async (key: string): Promise<[string, any]> => {
                 const cachedObject = await this.getItem(key)
@@ -187,7 +186,6 @@ export default class CacheWrapper {
         return await Promise.all(promises)
     }
 
-    @CacheWrapper._check()
     async multiSetItem(
         values: {
             key: string
@@ -195,6 +193,7 @@ export default class CacheWrapper {
             maxAge?: number
         }[],
     ): Promise<void> {
+        this._check()
         const promises = values.map(
             async ({ key, data, maxAge }): Promise<void> => {
                 await this.setItem(key, data, maxAge ?? undefined)
@@ -203,8 +202,8 @@ export default class CacheWrapper {
         await Promise.all(promises)
     }
 
-    @CacheWrapper._check()
     async multiRemoveItem(keys: string[]): Promise<void> {
+        this._check()
         const promises = keys.map(
             async (key: string): Promise<void> => {
                 await this.removeItem(key)
@@ -213,13 +212,12 @@ export default class CacheWrapper {
         await Promise.all(promises)
     }
 
-    @CacheWrapper._check()
     memoize<R>(
         fn: (...args: any[]) => Promise<R>,
         key: string,
         maxAge: number,
     ): (...args: any[]) => Promise<R> {
-        // TODO: check if use of arrow function is required here to avoid scoping issues. Possible binding as also required.
+        this._check()
         return async (...args: any[]) => {
             const cachedData = await this.getItem(key)
             if (cachedData) {
@@ -231,14 +229,14 @@ export default class CacheWrapper {
         }
     }
 
-    @CacheWrapper._check()
     async keys(filtered = true): Promise<string[]> {
+        this._check()
         const keys = await this.localForage.keys()
         return filtered ? keys.filter((key) => key.includes(this.name)) : keys
     }
 
-    @CacheWrapper._check()
     async records(): Promise<[string, CacheObject<any> | null][]> {
+        this._check()
         const keys = await this.keys()
         if (keys.length) {
             return await this.multiGetItem(keys)
@@ -246,8 +244,8 @@ export default class CacheWrapper {
         return []
     }
 
-    @CacheWrapper._check()
     async prune(): Promise<void> {
+        this._check()
         const records = await this.records()
         if (records.length) {
             const invalidRecords = records
