@@ -12,6 +12,7 @@ enum Errors {
     VALUE_ERROR = 'VALUE_ERROR',
 }
 
+const toErrString = (msg: string) => `<R-Cache> ${msg}`
 const isRN = () => navigator?.product === 'ReactNative'
 const now = (): number => new Date().getTime()
 export default class CacheWrapper {
@@ -34,21 +35,27 @@ export default class CacheWrapper {
 
     private _check(throwNoInit = true) {
         if (throwNoInit && !this.init) {
-            throw '<R-Cache> config() must be called before interacting with the cache'
+            throw new Error(
+                toErrString(
+                    'config must be called before interacting with the cache',
+                ),
+            )
         } else if (!throwNoInit && this.init) {
-            throw '<R-Cache> config() must be called only once'
+            throw new Error(toErrString('config must be called only once'))
         }
     }
 
     async config(): Promise<void> {
         this._check(false)
         if (isRN()) {
+            if (this.options.driver) {
+                throw new Error(
+                    toErrString('do not pass driver in ReactNative'),
+                )
+            }
             const driver = driverWithDefaultSerialization()
             await localforage.defineDriver(driver)
             await localforage.setDriver(driver._driver)
-            if (this.options.driver) {
-                delete this.options.driver
-            }
         }
 
         localforage.config({
@@ -84,7 +91,7 @@ export default class CacheWrapper {
             }
         }
         if (throwErrors && !fallback) {
-            throw Errors.VALUE_ERROR
+            throw new Error(Errors.VALUE_ERROR)
         }
         return fallback ?? null
     }
@@ -108,11 +115,11 @@ export default class CacheWrapper {
     async mergeItem<T>(key: string, value: T): Promise<T> {
         this._check()
         if (!value || typeof value !== 'object') {
-            throw '<rn-cache-wrapper> merge value must be of typeof object'
+            throw new Error(toErrString('merge value must be of typeof object'))
         }
         const storedValue = await this.getItem<T>(key)
         if (!storedValue || typeof storedValue !== 'object') {
-            throw Errors.CACHE_ERROR
+            throw new Error(Errors.CACHE_ERROR)
         }
         const mergedValue = merge(storedValue, value)
         await this.setItem(key, mergedValue)
@@ -133,14 +140,14 @@ export default class CacheWrapper {
     async multiSetItem(
         values: {
             key: string
-            data: any
+            value: any
             maxAge?: number
         }[],
     ): Promise<void> {
         this._check()
         const promises = values.map(
-            async ({ key, data, maxAge }): Promise<void> => {
-                await this.setItem(key, data, maxAge ?? undefined)
+            async ({ key, value, maxAge }): Promise<void> => {
+                await this.setItem(key, value, maxAge ?? undefined)
             },
         )
         await Promise.all(promises)
