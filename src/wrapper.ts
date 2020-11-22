@@ -66,7 +66,7 @@ export default class CacheWrapper {
             key: string,
             descriptor: PropertyDescriptor,
         ) {
-            const wrapped = descriptor.value as (...args: any[]) => Promise<R>
+            const wrapped = descriptor.value
             if (typeof wrapped === 'function') {
                 Reflect.set(
                     descriptor,
