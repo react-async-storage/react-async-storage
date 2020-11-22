@@ -1,5 +1,4 @@
 import { driverWithDefaultSerialization } from '@aveq-research/localforage-asyncstorage-driver'
-import AsyncStorage from '@react-native-community/async-storage'
 import localforage from 'localforage'
 import merge from 'lodash.merge'
 export interface CacheObject<T> {
@@ -12,8 +11,7 @@ export enum Errors {
     VALUE_ERROR = 'VALUE_ERROR',
 }
 
-const isRN = () =>
-    navigator?.product === 'ReactNative' && typeof AsyncStorage !== 'undefined'
+const isRN = () => navigator?.product === 'ReactNative'
 const now = (): number => new Date().getTime()
 const isStale = (expiration?: number) => !!expiration && expiration < now()
 
@@ -41,16 +39,18 @@ export default class CacheWrapper {
         return function (target: T, key: K, descriptor: PropertyDescriptor) {
             const wrapped = descriptor.value as T[K]
             if (typeof wrapped === 'function') {
-                Reflect.set(descriptor, 'value', async function (
-                    ...args: any[]
-                ) {
-                    if (throwNoInit && !target.init) {
-                        throw '<rn-cache-wrapper> cacheInit must be called before interacting with the cache'
-                    } else if (!throwNoInit && target.init) {
-                        throw '<rn-cache-wrapper> cacheInit must be called only once per instance'
-                    }
-                    return (await wrapped.apply(target, args)) as R
-                })
+                Reflect.set(
+                    descriptor,
+                    'value',
+                    async function (...args: any[]) {
+                        if (throwNoInit && !target.init) {
+                            throw '<rn-cache-wrapper> cacheInit must be called before interacting with the cache'
+                        } else if (!throwNoInit && target.init) {
+                            throw '<rn-cache-wrapper> cacheInit must be called only once per instance'
+                        }
+                        return (await wrapped.apply(target, args)) as R
+                    },
+                )
                 return descriptor
             }
         }
@@ -68,15 +68,17 @@ export default class CacheWrapper {
         ) {
             const wrapped = descriptor.value as (...args: any[]) => Promise<R>
             if (typeof wrapped === 'function') {
-                Reflect.set(descriptor, 'value', async function (
-                    ...args: any[]
-                ) {
-                    return memoize<R>(
-                        wrapped,
-                        prefix(`${identifier}:::${key}`),
-                        maxAge,
-                    )(...args)
-                })
+                Reflect.set(
+                    descriptor,
+                    'value',
+                    async function (...args: any[]) {
+                        return memoize<R>(
+                            wrapped,
+                            prefix(`${identifier}:::${key}`),
+                            maxAge,
+                        )(...args)
+                    },
+                )
                 return descriptor
             }
         }
@@ -98,6 +100,7 @@ export default class CacheWrapper {
             name: this.name,
             version: this.version,
         })
+
         await localforage.ready()
         await this.prune()
         this.init = true
