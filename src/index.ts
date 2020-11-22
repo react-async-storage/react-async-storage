@@ -1,12 +1,13 @@
 import { driverWithDefaultSerialization } from '@aveq-research/localforage-asyncstorage-driver'
 import localforage from 'localforage'
 import merge from 'lodash.merge'
-export interface CacheObject<T> {
+
+interface CacheObject<T> {
     expiration?: number
     data: T
 }
 
-export enum Errors {
+enum Errors {
     CACHE_ERROR = 'CACHE_ERROR',
     VALUE_ERROR = 'VALUE_ERROR',
 }
@@ -279,5 +280,3 @@ export default class CacheWrapper {
         }
     }
 }
-
-export type Wrapper = CacheWrapper
