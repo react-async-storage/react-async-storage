@@ -2,10 +2,36 @@ name: CI
 
 on: [push]
 jobs:
-    eslint-check-script:
+    test:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
             - uses: actions/setup-node@v1
-            - run: yarn install
-            - run: yarn check:script
+            - name: Get yarn cache directory path
+              id: yarn-cache-dir-path
+              run: echo "::set-output name=dir::$(yarn cache dir)"
+            - name: Cache yarn cache
+              uses: actions/cache@v2
+              id: cache-yarn-cache
+              with:
+                  path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+                  key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-yarn-
+            - name: Cache node_modules
+              id: cache-node-modules
+              uses: actions/cache@v2
+              with:
+                  path: node_modules
+                  key: ${{ runner.os }}-${{ matrix.node-version }}-nodemodules-${{ hashFiles('**/yarn.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-${{ matrix.node-version }}-nodemodules-
+            - name: Yarn Install
+              run: yarn
+              if: |
+                  steps.cache-yarn-cache.outputs.cache-hit != 'true' ||
+                  steps.cache-node-modules.outputs.cache-hit != 'true'
+            - name: Eslint Check
+              run: yarn check:script
+            - name: Test
+              run: yarn test
