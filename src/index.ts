@@ -28,19 +28,6 @@ export default class CacheWrapper {
         this.name = options?.name ?? 'ReactCacheWrapper'
         this.version = options?.version ?? 1.0
         this.options = options ?? {}
-        this.config = this.config.bind(this)
-        this.hasItem.bind(this)
-        this.getItem.bind(this)
-        this.setItem.bind(this)
-        this.removeItem.bind(this)
-        this.mergeItem.bind(this)
-        this.multiGetItem.bind(this)
-        this.multiSetItem.bind(this)
-        this.multiRemoveItem.bind(this)
-        this.memoize.bind(this)
-        this.keys.bind(this)
-        this.records.bind(this)
-        this.prune.bind(this)
     }
 
     private _prefix(key: string): string {
@@ -52,35 +39,6 @@ export default class CacheWrapper {
             throw '<rn-cache-wrapper> cacheInit must be called before interacting with the cache'
         } else if (!throwNoInit && this.init) {
             throw '<rn-cache-wrapper> cacheInit must be called only once per instance'
-        }
-    }
-
-    cache<R>(identifier: string, maxAge: number) {
-        this._check(false)
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        const memoize = this.memoize
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        const prefix = this._prefix
-        return function (
-            target: any,
-            key: string,
-            descriptor: PropertyDescriptor,
-        ) {
-            const wrapped = descriptor.value
-            if (typeof wrapped === 'function') {
-                Reflect.set(
-                    descriptor,
-                    'value',
-                    async function (...args: any[]) {
-                        return memoize<R>(
-                            wrapped,
-                            prefix(`${identifier}:::${key}`),
-                            maxAge,
-                        )(...args)
-                    },
-                )
-                return descriptor
-            }
         }
     }
 
