@@ -40,6 +40,15 @@ module.exports = {
                 'jest': true,
                 'jest/globals': true,
             },
+            rules: {
+                '@typescript-eslint/ban-ts-comment': 0,
+                '@typescript-eslint/no-unsafe-call': 0,
+                '@typescript-eslint/no-unsafe-member-access': 0,
+                'jest/no-conditional-expect': 0,
+                'jest/no-try-expect': 0,
+                'no-delete-var': 0,
+                'no-global-assign': 0,
+            },
         },
     ],
 }

@@ -1,10 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable no-global-assign */
-/* eslint-disable no-delete-var */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable jest/no-conditional-expect */
-/* eslint-disable jest/no-try-expect */
 import CacheWrapper from '../src'
 import localForage from 'localforage'
 import merge from 'lodash.merge'
@@ -256,6 +249,192 @@ describe('CacheWrapper tests', () => {
                 ).toEqual([
                     ['testValue1', null],
                     ['testValue2', null],
+                ])
+            })
+        })
+        describe('clear', () => {
+            it('clears cache correctly', async () => {
+                await cache.multiSetItem([
+                    { key: 'testValue1', value: 1 },
+                    { key: 'testValue2', value: 2 },
+                ])
+                expect(
+                    await cache.multiGetItem(['testValue1', 'testValue2']),
+                ).toEqual([
+                    ['testValue1', 1],
+                    ['testValue2', 2],
+                ])
+                const cb = jest.fn()
+                await cache.clear(cb)
+                expect(cb).toHaveBeenCalled()
+                expect(
+                    await cache.multiGetItem(['testValue1', 'testValue2']),
+                ).toEqual([
+                    ['testValue1', null],
+                    ['testValue2', null],
+                ])
+            })
+        })
+        describe('keys', () => {
+            it('filters keys correctly', async () => {
+                await cache.multiSetItem([
+                    { key: 'testValue1', value: 1 },
+                    { key: 'testValue2', value: 2 },
+                ])
+                await cache.localForage.setItem('otherValue', 123)
+                const keys = await cache.keys()
+                expect(keys.length).toEqual(2)
+            })
+            it('returns all values correctly', async () => {
+                await cache.multiSetItem([
+                    { key: 'testValue1', value: 1 },
+                    { key: 'testValue2', value: 2 },
+                ])
+                await cache.localForage.setItem('otherValue', 123)
+                const keys = await cache.keys(false)
+                expect(keys.length).toEqual(3)
+            })
+        })
+        describe('records', () => {
+            it('retrieves records correctly', async () => {
+                await cache.multiSetItem([
+                    { key: 'testValue1', value: 1 },
+                    { key: 'testValue2', value: 2, maxAge: 150 },
+                ])
+                const records = await cache.records()
+                expect(records).toEqual([
+                    {
+                        key: 'testValue1',
+                        version: '1',
+                        value: 1,
+                        expiration: undefined,
+                    },
+                    {
+                        key: 'testValue2',
+                        version: '1',
+                        value: 2,
+                        expiration: expect.any(Number),
+                    },
+                ])
+            })
+        })
+        describe('prune', () => {
+            it('prunes expired records correctly', async () => {
+                await cache.multiSetItem([
+                    { key: 'testValue1', value: 1 },
+                    { key: 'testValue2', value: 2, maxAge: 10 },
+                    { key: 'testValue3', value: null },
+                ])
+                await cache.prune()
+                expect(await cache.records()).toEqual([
+                    {
+                        key: 'testValue1',
+                        version: '1',
+                        value: 1,
+                        expiration: undefined,
+                    },
+                    {
+                        key: 'testValue2',
+                        version: '1',
+                        value: 2,
+                        expiration: expect.any(Number),
+                    },
+                    {
+                        key: 'testValue3',
+                        version: '1',
+                        value: null,
+                        expiration: undefined,
+                    },
+                ])
+                await new Promise((r) => setTimeout(r, 200))
+                await cache.prune()
+                expect(await cache.records()).toEqual([
+                    {
+                        key: 'testValue1',
+                        version: '1',
+                        value: 1,
+                        expiration: undefined,
+                    },
+                    {
+                        key: 'testValue3',
+                        version: '1',
+                        value: null,
+                        expiration: undefined,
+                    },
+                ])
+            })
+            it('prunes old vesioned records correctly', async () => {
+                await cache.multiSetItem([
+                    { key: 'testValue1', value: 1 },
+                    { key: 'testValue2', value: null },
+                ])
+                await cache.localForage.setItem(
+                    `${cache.name}:::${cache.version - 1}:::oldValue`,
+                    { data: 100 },
+                )
+                expect(await cache.records()).toEqual([
+                    {
+                        key: 'testValue1',
+                        version: '1',
+                        value: 1,
+                        expiration: undefined,
+                    },
+                    {
+                        key: 'testValue2',
+                        version: '1',
+                        value: null,
+                        expiration: undefined,
+                    },
+                    {
+                        expiration: undefined,
+                        key: 'oldValue',
+                        value: 100,
+                        version: '0',
+                    },
+                ])
+                await cache.prune()
+                expect(await cache.records()).toEqual([
+                    {
+                        key: 'testValue1',
+                        version: '1',
+                        value: 1,
+                        expiration: undefined,
+                    },
+                    {
+                        key: 'testValue2',
+                        version: '1',
+                        value: null,
+                        expiration: undefined,
+                    },
+                ])
+            })
+            it('prunes null values correctly', async () => {
+                await cache.multiSetItem([
+                    { key: 'testValue1', value: 1 },
+                    { key: 'testValue2', value: null },
+                ])
+                expect(await cache.records()).toEqual([
+                    {
+                        key: 'testValue1',
+                        version: '1',
+                        value: 1,
+                        expiration: undefined,
+                    },
+                    {
+                        key: 'testValue2',
+                        version: '1',
+                        value: null,
+                        expiration: undefined,
+                    },
+                ])
+                await cache.prune(true)
+                expect(await cache.records()).toEqual([
+                    {
+                        key: 'testValue1',
+                        version: '1',
+                        value: 1,
+                        expiration: undefined,
+                    },
                 ])
             })
         })

@@ -29,8 +29,8 @@ export default class CacheWrapper {
         this.options = options ?? {}
     }
 
-    private _prefix(key: string): string {
-        return `${this.name}:::${this.version}:::${key}`
+    private _prefix(key: string, version?: number | string): string {
+        return `${this.name}:::${version ?? this.version}:::${key}`
     }
 
     private _check(throwNoInit = true) {
@@ -174,50 +174,68 @@ export default class CacheWrapper {
         return filtered ? keys.filter((key) => key.includes(this.name)) : keys
     }
 
-    async records(): Promise<[string, CacheObject<any> | null][]> {
+    async records(): Promise<
+        {
+            key: string
+            version: string
+            value: any | null
+            expiration?: number
+        }[]
+    > {
         this._check()
         const keys = await this.keys()
         if (keys.length) {
-            return await this.multiGetItem(keys)
+            const records = (await Promise.all(
+                keys.map(async (key) => {
+                    const value = await this.localForage.getItem(key)
+                    return [key, value]
+                }),
+            )) as [string, CacheObject<any>][]
+            return records.map(([key, cacheObj]) => {
+                const splitKey = key.split(':::')
+                return {
+                    key: splitKey[splitKey.length - 1],
+                    version: splitKey[1],
+                    value: cacheObj.data,
+                    expiration: cacheObj.expiration,
+                }
+            })
         }
         return []
     }
 
-    async prune(): Promise<void> {
+    async prune(pruneNullValues = false): Promise<void> {
         this._check()
         const records = await this.records()
         if (records.length) {
-            const invalidRecords = records
-                .filter(
-                    (record) =>
-                        record[0].split(':::')[1] !== this.version.toString() ||
-                        !record[1],
+            const invalidRecords = records.filter(
+                (record) =>
+                    record.version !== this.version.toString() ||
+                    (record.expiration && record.expiration < now()),
+            )
+            if (pruneNullValues) {
+                invalidRecords.push(
+                    ...records.filter((record) => record.value === null),
                 )
-                .map((record) => record[0])
-
-            const parsedRecords = records.filter(
-                (record) => !invalidRecords.includes(record[0]),
-            ) as [string, CacheObject<any>][]
-
-            invalidRecords.concat(
-                parsedRecords
-                    .filter(
-                        (record) =>
-                            record[1]?.expiration &&
-                            record[1].expiration < now(),
-                    )
-                    .map((record) => record[0]),
-            )
-
-            if (invalidRecords.length) {
-                await this.multiRemoveItem(invalidRecords)
             }
-
-            this.store = new Map(
-                parsedRecords.filter(
-                    (record) => !invalidRecords.includes(record[0]),
-                ),
+            if (invalidRecords.length) {
+                const promises = invalidRecords.map(
+                    async (record) =>
+                        await this.localForage.removeItem(
+                            this._prefix(record.key, record.version),
+                        ),
+                )
+                await Promise.all(promises)
+            }
+            const invalidRecordKeys = invalidRecords.map(
+                (records) => records.key,
             )
+            const validRecords = await this.multiGetItem(
+                records
+                    .filter((record) => !invalidRecordKeys.includes(record.key))
+                    .map((record) => record.key),
+            )
+            this.store = new Map(validRecords)
         }
     }
 }
