@@ -1,22 +1,29 @@
 import { driverWithDefaultSerialization } from '@aveq-research/localforage-asyncstorage-driver'
 import localforage from 'localforage'
 import merge from 'lodash.merge'
-interface CacheObject<T> {
+interface CacheObject<T = any> {
     expiration?: number
     data: T
+}
+
+export interface CacheRecord<T = any> {
+    key: string
+    version: string
+    value: T | null
+    expiration?: number
 }
 
 const isRN = () => navigator.product === 'ReactNative'
 const now = (): number => new Date().getTime()
 
-class CacheError extends Error {
+export class CacheError extends Error {
     /* istanbul ignore next */
     constructor(msg: string) {
         super(`<R-Cache> ${msg}`)
         this.name = 'CacheError'
     }
 }
-export default class Cache {
+export default class CacheWrapper {
     init = false
     readonly name: string
     readonly version: number
@@ -171,14 +178,7 @@ export default class Cache {
         return filtered ? keys.filter((key) => key.includes(this.name)) : keys
     }
 
-    async records(): Promise<
-        {
-            key: string
-            version: string
-            value: any | null
-            expiration?: number
-        }[]
-    > {
+    async records(): Promise<CacheRecord[]> {
         this._check()
         const keys = await this.keys()
         if (keys.length) {
