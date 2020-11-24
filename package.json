@@ -79,6 +79,7 @@
     },
     "dependencies": {
         "@aveq-research/localforage-asyncstorage-driver": "^2.0.0",
+        "compare-versions": "^3.6.0",
         "lodash.merge": "^4.6.2"
     }
 }
