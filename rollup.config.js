@@ -4,8 +4,28 @@ import commonjs from 'rollup-plugin-commonjs'
 import nodeResolve from '@rollup/plugin-node-resolve'
 import typescript from 'rollup-plugin-typescript2'
 
-const input = 'src/index.ts'
 const output = (type) => ({
+    input: 'src/index.ts',
+    external: ['localforage', '@react-native-community/async-storage '],
+    plugins: [
+        nodeResolve({
+            browser: true,
+            customResolveOptions: {
+                moduleDirectory: 'node_modules',
+            },
+        }),
+        commonjs({
+            include: 'node_modules/**',
+        }),
+        typescript({
+            useTsconfigDeclarationDir: false,
+            tsconfigOverride: {
+                include: ['src'],
+                exclude: ['node_modules', 'dist'],
+            },
+        }),
+        terser(),
+    ],
     output: {
         exports: 'named',
         file:
@@ -19,44 +39,5 @@ const output = (type) => ({
         },
     },
 })
-const external = ['localforage', '@react-native-community/async-storage ']
-const plugins = [
-    nodeResolve({
-        browser: true,
-        customResolveOptions: {
-            moduleDirectory: 'node_modules',
-        },
-    }),
-    commonjs({
-        include: 'node_modules/**',
-    }),
-    typescript({
-        useTsconfigDeclarationDir: false,
-        tsconfigOverride: {
-            include: ['src'],
-            exclude: ['node_modules', 'dist'],
-        },
-    }),
-    terser(),
-]
 
-export default [
-    {
-        input,
-        external,
-        ...output('esm'),
-        plugins,
-    },
-    {
-        input,
-        external,
-        ...output('cjs'),
-        plugins,
-    },
-    {
-        input,
-        external,
-        ...output('umd'),
-        plugins,
-    },
-]
+export default [output('esm'), output('cjs'), output('umd')]
