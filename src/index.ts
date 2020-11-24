@@ -15,7 +15,8 @@ enum Errors {
 const toErrString = (msg: string) => `<R-Cache> ${msg}`
 const isRN = () => navigator?.product === 'ReactNative'
 const now = (): number => new Date().getTime()
-export default class CacheWrapper {
+
+export default class Cache {
     init = false
     readonly name: string
     readonly version: number

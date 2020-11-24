@@ -1,9 +1,22 @@
 {
-    "name": "react-native-axios-cache",
+    "name": "r-cache",
     "version": "1.0.0",
-    "description": "",
-    "main": "index.ts",
+    "description": "Typescript enabled react localForage cache",
+    "files": [
+        "dist"
+    ],
+    "readme": "README.md",
+    "main": "dist/cjs/index.js",
+    "module": "dist/esm/index.js",
+    "browser": {
+        "./dist/cjs/index.js": "./dist/umd/index.js",
+        "./dist/esm/index.js": "./dist/esm/index.js"
+    },
+    "unpkg": "dist/umd/index.min.js",
     "scripts": {
+        "prepublishOnly": "yarn build",
+        "postpublish": "rimraf dist",
+        "build": "rimraf dist && rollup -c rollup.config.js",
         "check:script": "eslint --fix-dry-run '**/*.{ts,tsx,*.ts,*.tsx}'",
         "lint:script": "eslint --fix '**/*.{ts,tsx,*.ts,*.tsx}'",
         "test": "jest"
@@ -23,11 +36,19 @@
     },
     "author": "Na'aman Hirschfeld",
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Goldziher/r-cache.git"
+    },
+    "bugs": {
+        "url": "https://github.com/Goldziher/r-cache/issues"
+    },
+    "homepage": "https://github.com/Goldziher/r-cache#readme",
     "devDependencies": {
         "@jest/types": "^26.6.2",
         "@react-native-community/async-storage": "^1.12.1",
+        "@rollup/plugin-node-resolve": "^10.0.0",
         "@types/lodash.merge": "^4.6.6",
-        "@types/react": "^17.0.0",
         "@typescript-eslint/eslint-plugin": "^4.8.1",
         "@typescript-eslint/parser": "^4.8.1",
         "eslint": "^7.14.0",
@@ -41,14 +62,20 @@
         "lint-staged": "^10.5.1",
         "localforage": "^1.9.0",
         "prettier": "^2.2.0",
-        "react": "17.0.1",
         "react-native": "^0.63.3",
+        "rimraf": "^3.0.2",
+        "rollup": "^2.33.3",
+        "rollup-plugin-commonjs": "^10.1.0",
+        "rollup-plugin-terser": "^7.0.2",
+        "rollup-plugin-typescript2": "^0.29.0",
         "ts-jest": "^26.4.4",
         "typescript": "^4.1.2"
     },
     "peerDependencies": {
+        "@react-native-community/async-storage": "*",
         "localforage": "*",
-        "react": "*"
+        "react": "*",
+        "react-native": "*"
     },
     "dependencies": {
         "@aveq-research/localforage-asyncstorage-driver": "^2.0.0",

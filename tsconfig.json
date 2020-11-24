@@ -1,13 +1,12 @@
 {
     "compilerOptions": {
-        "allowJs": false,
-        "allowSyntheticDefaultImports": true,
-        "jsx": "react",
-        "lib": ["es6", "es2016", "DOM"],
-        "moduleResolution": "node",
-        "esModuleInterop": true,
+        "target": "ES5",
+        "module": "ES2015",
         "strict": true,
-        "target": "esnext"
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "declaration": true
     },
     "exclude": ["node_modules"]
 }
