@@ -1,21 +1,21 @@
 import { driverWithDefaultSerialization } from '@aveq-research/localforage-asyncstorage-driver'
 import localforage from 'localforage'
 import merge from 'lodash.merge'
-
 interface CacheObject<T> {
     expiration?: number
     data: T
 }
 
-enum Errors {
-    CACHE_ERROR = 'CACHE_ERROR',
-    VALUE_ERROR = 'VALUE_ERROR',
-}
-
-const toErrString = (msg: string) => `<R-Cache> ${msg}`
-const isRN = () => navigator?.product === 'ReactNative'
+const isRN = () => navigator.product === 'ReactNative'
 const now = (): number => new Date().getTime()
 
+class CacheError extends Error {
+    /* istanbul ignore next */
+    constructor(msg: string) {
+        super(`<R-Cache> ${msg}`)
+        this.name = 'CacheError'
+    }
+}
 export default class Cache {
     init = false
     readonly name: string
@@ -36,13 +36,11 @@ export default class Cache {
 
     private _check(throwNoInit = true) {
         if (throwNoInit && !this.init) {
-            throw new Error(
-                toErrString(
-                    'config must be called before interacting with the cache',
-                ),
+            throw new CacheError(
+                'config must be called before interacting with the cache',
             )
         } else if (!throwNoInit && this.init) {
-            throw new Error(toErrString('config must be called only once'))
+            throw new CacheError('config must be called only once')
         }
     }
 
@@ -50,9 +48,7 @@ export default class Cache {
         this._check(false)
         if (isRN()) {
             if (this.options.driver) {
-                throw new Error(
-                    toErrString('do not pass driver in ReactNative'),
-                )
+                throw new CacheError('do not pass driver(s) in ReactNative')
             }
             const driver = driverWithDefaultSerialization()
             await localforage.defineDriver(driver)
@@ -92,7 +88,7 @@ export default class Cache {
             }
         }
         if (throwErrors && !fallback) {
-            throw new Error(Errors.VALUE_ERROR)
+            throw new CacheError(`null value returned for key ${key}`)
         }
         return fallback ?? null
     }
@@ -116,11 +112,11 @@ export default class Cache {
     async mergeItem<T>(key: string, value: T): Promise<T> {
         this._check()
         if (!value || typeof value !== 'object') {
-            throw new Error(toErrString('merge value must be of typeof object'))
+            throw new CacheError('merge value must be of typeof object')
         }
         const storedValue = await this.getItem<T>(key)
         if (!storedValue || typeof storedValue !== 'object') {
-            throw new Error(Errors.CACHE_ERROR)
+            throw new CacheError('merge target must be of typeof object')
         }
         const mergedValue = merge(storedValue, value)
         await this.setItem(key, mergedValue)

@@ -19,7 +19,7 @@
         "build": "rimraf dist && rollup -c rollup.config.js",
         "check:script": "eslint --fix-dry-run '**/*.{ts,tsx,*.ts,*.tsx}'",
         "lint:script": "eslint --fix '**/*.{ts,tsx,*.ts,*.tsx}'",
-        "test": "jest"
+        "test": "jest --silent"
     },
     "husky": {
         "hooks": {

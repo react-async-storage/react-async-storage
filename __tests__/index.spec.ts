@@ -80,7 +80,7 @@ describe('CacheWrapper tests', () => {
                 await cache.config()
             } catch (error) {
                 expect(error.message).toBe(
-                    '<R-Cache> do not pass driver in ReactNative',
+                    '<R-Cache> do not pass driver(s) in ReactNative',
                 )
             }
         })
@@ -113,7 +113,9 @@ describe('CacheWrapper tests', () => {
                 try {
                     await cache.getItem('testValue', null, true)
                 } catch (error) {
-                    expect(error.message).toBe('VALUE_ERROR')
+                    expect(error.message).toBe(
+                        '<R-Cache> null value returned for key testValue',
+                    )
                 }
             })
             it('calls fallback when provided', async () => {
@@ -183,7 +185,9 @@ describe('CacheWrapper tests', () => {
                 try {
                     await cache.mergeItem('testValue', value2)
                 } catch (error) {
-                    expect(error.message).toBe('CACHE_ERROR')
+                    expect(error.message).toBe(
+                        '<R-Cache> merge target must be of typeof object',
+                    )
                 }
             })
             it('throws an error when merge target is not an object', async () => {
@@ -191,7 +195,9 @@ describe('CacheWrapper tests', () => {
                 try {
                     await cache.mergeItem('testValue', value2)
                 } catch (error) {
-                    expect(error.message).toBe('CACHE_ERROR')
+                    expect(error.message).toBe(
+                        '<R-Cache> merge target must be of typeof object',
+                    )
                 }
             })
         })
