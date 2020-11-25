@@ -13,8 +13,9 @@ export default async function CacheFactory({
     storeName = 'defaultCache',
     prune = true,
     allowStale = false,
+    preferCache = true,
     ...rest
-}: CacheOptions) {
+}: CacheOptions): Promise<CacheWrapper> {
     const config = {
         name: name ?? 'RCache',
         ...rest,
@@ -30,8 +31,8 @@ export default async function CacheFactory({
     }
 
     localforage.config(config)
-
     await localforage.ready()
+
     const instance = localforage.createInstance({
         storeName,
     })
@@ -74,5 +75,12 @@ export default async function CacheFactory({
     }
 
     const cache = new Map(records.map((record) => [record.key, record]))
-    return new CacheWrapper({ allowStale, cache, instance, name, version })
+    return new CacheWrapper({
+        allowStale,
+        cache,
+        instance,
+        name,
+        preferCache,
+        version,
+    })
 }

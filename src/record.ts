@@ -18,7 +18,7 @@ export class CacheRecord<T = any> {
         return !!this.expiration && this.expiration < now()
     }
 
-    asObject = (): CacheObject => {
+    toObject = (): CacheObject<T> => {
         return {
             expiration: this.expiration,
             value: this.value,
