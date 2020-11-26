@@ -1,7 +1,7 @@
-import { Cache, CacheObject, CacheWrapperOptions } from './types'
+import { Cache, CacheObject, CacheWrapperOptions, MaxAge } from './types'
 import { CacheError } from './errors'
 import { CacheRecord } from './record'
-import { now } from './utils'
+import { handleExpiration, now } from './utils'
 import merge from 'lodash.merge'
 
 type Setter<T> = () => T
@@ -68,7 +68,7 @@ export class CacheWrapper {
         key: string,
         options?: {
             value?: T | UpdateSetter<T>
-            maxAge?: number
+            maxAge?: MaxAge
             version?: string
         },
         callback?: (error: Error, value: CacheObject<T>) => void,
@@ -81,7 +81,7 @@ export class CacheWrapper {
                 ? options.value(record.value)
                 : options.value
         record.expiration = options?.maxAge
-            ? now() + options.maxAge
+            ? now() + handleExpiration(options.maxAge)
             : record.expiration
         record.version = options?.version ?? record.version
         try {
@@ -128,10 +128,10 @@ export class CacheWrapper {
     async setItem<T = any>(
         key: string,
         value: Setter<T> | T,
-        maxAge?: number,
+        maxAge?: MaxAge,
         callback?: (error: Error | null, value?: CacheObject<T>) => void,
     ): Promise<void> {
-        const expiration = maxAge ? now() + maxAge : undefined
+        const expiration = maxAge ? now() + handleExpiration(maxAge) : undefined
         const record = new CacheRecord<T>(
             key,
             this.version,
@@ -188,7 +188,7 @@ export class CacheWrapper {
         values: {
             key: string
             value: any
-            maxAge?: number
+            maxAge?: MaxAge
         }[],
     ): Promise<void> {
         const promises = values.map(

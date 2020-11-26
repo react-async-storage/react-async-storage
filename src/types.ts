@@ -22,3 +22,14 @@ export interface CacheOptions extends Omit<LocalForageOptions, 'version'> {
     allowStale?: boolean
     preferCache?: boolean
 }
+
+export type TimeUnit =
+    | 'second'
+    | 'minute'
+    | 'hour'
+    | 'day'
+    | 'week'
+    | 'month'
+    | 'year'
+
+export type MaxAge = number | [number, TimeUnit]

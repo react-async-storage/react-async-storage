@@ -1,3 +1,4 @@
+import { CacheError } from '../src/errors'
 import { CacheWrapper } from '../src/wrapper'
 import cacheFactory from '../src'
 import localForage from 'localforage'
@@ -266,6 +267,49 @@ describe('CacheWrapper tests', () => {
         wrapper = null
     })
     const testValue = 'testValue 12345'
+    describe('hasItem', () => {
+        it('returns true/false correctly', async () => {
+            expect(wrapper.hasItem('testValue')).toBeFalsy()
+            await wrapper.setItem('testValue', testValue)
+            expect(wrapper.hasItem('testValue')).toBeTruthy()
+        })
+    })
+    describe('getRecord', () => {
+        it('retrieves record from cache correctly', async () => {
+            await wrapper.setItem('testValue', testValue)
+            const record = await wrapper.getRecord('testValue')
+            expect(record?.toObject()).toEqual({
+                key: 'testValue',
+                version: '1.0.0',
+                value: testValue,
+                expiration: undefined,
+            })
+        })
+        it('retrieves record from storage correctly', async () => {
+            await wrapper.setItem('testValue', testValue)
+            const record = await wrapper.getRecord('testValue', true, false)
+            expect(record?.toObject()).toEqual({
+                key: 'testValue',
+                version: '1.0.0',
+                value: testValue,
+                expiration: undefined,
+            })
+        })
+        it('throws an error when no value is returned and allowNull is false', async () => {
+            try {
+                await wrapper.getRecord('testValue', false)
+            } catch (error) {
+                expect(error).toBeInstanceOf(CacheError)
+                expect(error.message).toBe(
+                    `<R-Cache> null value returned for key testValue`,
+                )
+            }
+        })
+        it('returns null when allowNull is true and no value', async () => {
+            const record = await wrapper.getRecord('testValue')
+            expect(record).toBeNull()
+        })
+    })
     describe('getItem', () => {
         it('retrieves value without expiration correctly', async () => {
             await wrapper.setItem('testValue', testValue)
@@ -314,13 +358,7 @@ describe('CacheWrapper tests', () => {
             expect(await wrapper.getItem('testValue')).toBeNull()
         })
     })
-    describe('hasItem', () => {
-        it('returns true/false correctly', async () => {
-            expect(wrapper.hasItem('testValue')).toBeFalsy()
-            await wrapper.setItem('testValue', testValue)
-            expect(wrapper.hasItem('testValue')).toBeTruthy()
-        })
-    })
+
     describe('removeItem', () => {
         it('removes value correctly', async () => {
             await wrapper.setItem('testValue', testValue)
@@ -357,7 +395,7 @@ describe('CacheWrapper tests', () => {
                 await wrapper.mergeItem('testValue', value2)
             } catch (error) {
                 expect(error.message).toBe(
-                    '<R-Cache> error merging values for key testValue.',
+                    '<R-Cache> null value returned for key testValue',
                 )
             }
         })
