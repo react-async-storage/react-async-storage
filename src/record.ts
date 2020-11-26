@@ -21,6 +21,7 @@ export class CacheRecord<T = any> {
     toObject = (): CacheObject<T> => {
         return {
             expiration: this.expiration,
+            key: this.key,
             value: this.value,
             version: this.version,
         }

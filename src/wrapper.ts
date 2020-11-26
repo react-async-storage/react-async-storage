@@ -2,21 +2,23 @@ import { Cache, CacheObject, CacheWrapperOptions } from './types'
 import { CacheError } from './errors'
 import { CacheRecord } from './record'
 import { now } from './utils'
-import localforage from 'localforage'
 import merge from 'lodash.merge'
+
+type Setter<T> = () => T
+type UpdateSetter<T> = (value: T) => T
 
 export class CacheWrapper {
     readonly name: string
     readonly version: string
-    readonly localForage: LocalForage = localforage
+    readonly instance: LocalForage
     readonly allowStale: boolean
     readonly preferCache: boolean
-    private readonly cache: Cache = new Map()
+    cache: Cache = new Map()
 
     constructor(options: CacheWrapperOptions) {
         this.name = options.name
         this.version = options.version
-        this.localForage = options.instance
+        this.instance = options.instance
         this.cache = options.cache
         this.allowStale = options.allowStale
         this.preferCache = options.preferCache
@@ -33,19 +35,30 @@ export class CacheWrapper {
     ): Promise<CacheRecord<T> | null> {
         const record =
             this.hasItem(key) && preferCache
-                ? this.cache.get(key)
-                : await this.localForage.getItem<CacheObject<T>>(key)
+                ? (this.cache.get(key) as CacheRecord<T>)
+                : await this.instance.getItem<CacheObject<T>>(key)
+
+        if (record instanceof CacheRecord && !record.isStale()) {
+            return record
+        }
         if (!record) {
             if (!allowNull) {
                 throw new CacheError(`null value returned for key ${key}`)
             }
             return null
-        } else if (record instanceof CacheRecord) {
-            return record as CacheRecord<T>
+        } else if (record.expiration && record.expiration < now()) {
+            await this.removeItem(key)
+            if (!allowNull) {
+                throw new CacheError(
+                    `stale value return for key ${key}: to resolve this error allowNull when calling getRecord`,
+                )
+            }
+            return null
         }
-        return new CacheRecord<T>(
-            key,
-            this.version,
+
+        return new CacheRecord(
+            record.key,
+            record.version,
             record.value,
             record.expiration,
         )
@@ -53,20 +66,26 @@ export class CacheWrapper {
 
     async updateRecord<T = any>(
         key: string,
-        value?: (value: T) => T | T,
-        maxAge?: number,
+        options?: {
+            value?: T | UpdateSetter<T>
+            maxAge?: number
+            version?: string
+        },
         callback?: (error: Error, value: CacheObject<T>) => void,
     ): Promise<CacheRecord<T>> {
         const record = (await this.getRecord<T>(key, false)) as CacheRecord<T>
         record.value =
-            typeof value === 'undefined'
+            typeof options?.value === 'undefined'
                 ? record.value
-                : typeof value === 'function'
-                ? value(record.value)
-                : value
-        record.expiration = maxAge ? now() + maxAge : record.expiration
+                : options.value instanceof Function
+                ? options.value(record.value)
+                : options.value
+        record.expiration = options?.maxAge
+            ? now() + options.maxAge
+            : record.expiration
+        record.version = options?.version ?? record.version
         try {
-            await this.localForage.setItem(key, record.toObject(), callback)
+            await this.instance.setItem(key, record.toObject(), callback)
             this.cache.set(key, record)
         } catch (error) {
             throw new CacheError(`error writing key ${key}.`)
@@ -89,11 +108,7 @@ export class CacheWrapper {
                 preferCache,
             )
             if (record) {
-                if (!record.isStale) {
-                    returnValue = record.value
-                } else {
-                    await this.removeItem(key)
-                }
+                returnValue = record.value
             }
             if (callback) {
                 callback(null, returnValue)
@@ -112,7 +127,7 @@ export class CacheWrapper {
 
     async setItem<T = any>(
         key: string,
-        value: () => T | T,
+        value: Setter<T> | T,
         maxAge?: number,
         callback?: (error: Error | null, value?: CacheObject<T>) => void,
     ): Promise<void> {
@@ -120,11 +135,11 @@ export class CacheWrapper {
         const record = new CacheRecord<T>(
             key,
             this.version,
-            typeof value === 'function' ? value() : value,
+            value instanceof Function ? value() : value,
             expiration,
         )
         try {
-            await this.localForage.setItem(key, record.toObject(), callback)
+            await this.instance.setItem(key, record.toObject(), callback)
             this.cache.set(key, record)
         } catch (error) {
             throw new CacheError(`error writing key ${key}.`)
@@ -135,7 +150,7 @@ export class CacheWrapper {
         key: string,
         callback?: (error: Error) => void,
     ): Promise<void> {
-        await this.localForage.removeItem(key, callback)
+        await this.instance.removeItem(key, callback)
         this.cache.delete(key)
     }
 
@@ -147,8 +162,7 @@ export class CacheWrapper {
         try {
             const { value: mergedValue } = await this.updateRecord(
                 key,
-                (val: T) => merge(val, value),
-                undefined,
+                { value: (val: T) => merge(val, value) },
                 callback,
             )
             return mergedValue
@@ -195,14 +209,14 @@ export class CacheWrapper {
     }
 
     async clear(callback?: (error: Error) => void): Promise<void> {
-        await this.localForage.clear(callback)
+        await this.instance.clear(callback)
         this.cache.clear()
     }
 
     async keys(
         callback?: (error: Error | null, keys: string[]) => void,
     ): Promise<string[]> {
-        return await this.localForage.keys(callback)
+        return await this.instance.keys(callback)
     }
 
     async getRecords(
