@@ -2,6 +2,15 @@
     "name": "r-cache",
     "version": "1.0.0",
     "description": "Typescript enabled react localForage cache",
+    "keywords": [
+        "cache",
+        "localforage",
+        "localStorage",
+        "react",
+        "react-native",
+        "async",
+        "AsyncStorage"
+    ],
     "files": [
         "dist"
     ],
@@ -34,7 +43,11 @@
             "eslint --fix"
         ]
     },
-    "author": "Na'aman Hirschfeld",
+    "author": {
+        "name": "Na'aman Hirschfeld",
+        "email": "nhirschfeld@gmail.com",
+        "url": "https://github.com/Goldziher"
+    },
     "license": "MIT",
     "repository": {
         "type": "git",
