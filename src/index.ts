@@ -5,6 +5,10 @@ import { driverWithDefaultSerialization } from '@aveq-research/localforage-async
 import localforage from 'localforage'
 import semVer from 'compare-versions'
 
+// convenience exports
+export * from './types'
+export { CacheRecord }
+
 const retrieveAndPruneRecords = async (
     allowStale: boolean,
     instance: LocalForage,
@@ -41,7 +45,7 @@ const retrieveAndPruneRecords = async (
     return records.filter((record) => !invalidRecordKeys.includes(record.key))
 }
 
-async function CacheFactory({
+export default async function CacheFactory({
     name = 'RCache',
     version = '1.0.0',
     storeName = 'defaultCache',
@@ -84,5 +88,3 @@ async function CacheFactory({
     })
     return wrapper
 }
-
-export default CacheFactory

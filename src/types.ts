@@ -33,3 +33,6 @@ export type TimeUnit =
     | 'year'
 
 export type MaxAge = number | [number, TimeUnit]
+export type NodeCallBack<T = any> = (error: Error | null, value?: T) => void
+export type Setter<T> = () => T
+export type UpdateSetter<T> = (value: T) => T

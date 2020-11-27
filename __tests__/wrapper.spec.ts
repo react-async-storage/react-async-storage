@@ -34,7 +34,9 @@ describe('CacheWrapper tests', () => {
         })
         it('retrieves record from storage correctly', async () => {
             await wrapper.setItem('testValue', testValue)
-            const record = await wrapper.getRecord('testValue', true, false)
+            const record = await wrapper.getRecord('testValue', {
+                preferCache: false,
+            })
             expect(record?.toObject()).toEqual({
                 key: 'testValue',
                 version: '1.0.0',
@@ -44,7 +46,7 @@ describe('CacheWrapper tests', () => {
         })
         it('throws an error when no value is returned and allowNull is false', async () => {
             try {
-                await wrapper.getRecord('testValue', false)
+                await wrapper.getRecord('testValue', { allowNull: false })
             } catch (error) {
                 expect(error).toBeInstanceOf(CacheError)
                 expect(error.message).toBe(
@@ -73,7 +75,7 @@ describe('CacheWrapper tests', () => {
         it('throws error on no value when the option set to true', async () => {
             expect(await wrapper.getItem('testValue')).toBeNull()
             try {
-                await wrapper.getItem('testValue', null, true)
+                await wrapper.getItem('testValue', { allowNull: false })
             } catch (error) {
                 expect(error.message).toBe(
                     '<R-Cache> null value returned for key testValue',
@@ -82,12 +84,15 @@ describe('CacheWrapper tests', () => {
         })
         it('calls fallback when provided', async () => {
             const fallback = 'fallback'
-            const result = await wrapper.getItem('testValue', fallback)
+            const result = await wrapper.getItem('testValue', { fallback })
             expect(result).toBe(fallback)
         })
         it('does not throw error when fallback is provided', async () => {
             const fallback = 'fallback'
-            const result = await wrapper.getItem('testValue', fallback, true)
+            const result = await wrapper.getItem('testValue', {
+                fallback,
+                allowNull: false,
+            })
             expect(result).toBe(fallback)
         })
     })

@@ -1,11 +1,28 @@
+import { CacheRecord } from '../src'
 import { TimeUnit } from '../src/types'
 import { ValueError } from '../src/errors'
-import { handleExpiration } from '../src/utils'
 
-describe('utils tests', () => {
-    describe('handleExpiration', () => {
+describe('CacheRecord tests', () => {
+    let record: CacheRecord
+    beforeEach(() => {
+        record = new CacheRecord('testRecord', '1.0.0', 'testValue')
+    })
+    describe('setExpiration', () => {
+        const baseDate = new Date()
+        const baseTime = baseDate.getTime()
+        let spy: jest.SpyInstance
+        beforeEach(() => {
+            spy = jest
+                .spyOn(global, 'Date')
+                //@ts-ignore
+                .mockImplementation(() => baseDate)
+        })
+        afterEach(() => {
+            spy.mockRestore()
+        })
         it('returns the passed in value when that value is a positive number', () => {
-            expect(handleExpiration(1)).toEqual(1)
+            record.setExpiration(1)
+            expect(record.expiration).toEqual(baseTime + 1)
         })
         for (const [key, value] of Object.entries({
             second: 1e3,
@@ -17,46 +34,45 @@ describe('utils tests', () => {
             year: 315576e5,
         })) {
             it(`parses ${key}s correcty`, () => {
-                expect(handleExpiration([1, key as TimeUnit])).toEqual(value)
-                expect(handleExpiration([2, key as TimeUnit])).toEqual(
-                    value * 2,
-                )
-                expect(handleExpiration([1.5, key as TimeUnit])).toEqual(
-                    value * 1.5,
-                )
+                record.setExpiration([1, key as TimeUnit])
+                expect(record.expiration).toEqual(baseTime + value)
+                record.setExpiration([2, key as TimeUnit])
+                expect(record.expiration).toEqual(baseTime + value * 2)
+                record.setExpiration([1.5, key as TimeUnit])
+                expect(record.expiration).toEqual(baseTime + value * 1.5)
             })
         }
         it('throws when passed in value is NaN', () => {
             try {
-                handleExpiration(NaN)
+                record.setExpiration(NaN)
             } catch (error) {
                 expect(error).toBeInstanceOf(ValueError)
             }
         })
         it('throws when passed in value is negative', () => {
             try {
-                handleExpiration(-1)
+                record.setExpiration(-1)
             } catch (error) {
                 expect(error).toBeInstanceOf(ValueError)
             }
         })
         it('throws when passed in value is zero', () => {
             try {
-                handleExpiration(0)
+                record.setExpiration(0)
             } catch (error) {
                 expect(error).toBeInstanceOf(ValueError)
             }
         })
         it('throws when passed in value is zero in array', () => {
             try {
-                handleExpiration([0, 'day'])
+                record.setExpiration([0, 'day'])
             } catch (error) {
                 expect(error).toBeInstanceOf(ValueError)
             }
         })
         it('throws when passed in value is negative in array', () => {
             try {
-                handleExpiration([-1, 'day'])
+                record.setExpiration([-1, 'day'])
             } catch (error) {
                 expect(error).toBeInstanceOf(ValueError)
             }
@@ -64,7 +80,7 @@ describe('utils tests', () => {
         it('throws when passed in unit is invalid', () => {
             try {
                 //@ts-ignore
-                handleExpiration([1, 'days'])
+                record.setExpiration([1, 'days'])
             } catch (error) {
                 expect(error).toBeInstanceOf(ValueError)
             }

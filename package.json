@@ -16,7 +16,7 @@
     "scripts": {
         "prepublishOnly": "yarn build",
         "postpublish": "rimraf dist",
-        "build": "rimraf dist && rollup -c rollup.config.js",
+        "build": "rimraf dist && rollup -c rollup.config.js && prettier --write './dist/**/*.ts'",
         "check:script": "eslint --fix-dry-run '**/*.{ts,tsx,*.ts,*.tsx}'",
         "lint:script": "eslint --fix '**/*.{ts,tsx,*.ts,*.tsx}'",
         "test": "jest --silent"
