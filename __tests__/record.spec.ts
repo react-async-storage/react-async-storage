@@ -3,9 +3,46 @@ import { TimeUnit } from '../src/types'
 import { ValueError } from '../src/errors'
 
 describe('CacheRecord tests', () => {
+    describe('constructor', () => {
+        it('sets value when passed a function', () => {
+            const setter = jest.fn(() => '123')
+            const record = new CacheRecord('testRecord', '1.0.0', setter)
+            expect(setter).toHaveBeenCalled()
+            expect(record.value).toBe('123')
+        })
+        it('sets value when passed a regular value', () => {
+            const record = new CacheRecord('testRecord', '1.0.0', '123')
+            expect(record.value).toBe('123')
+        })
+        it('sets expiration when passed a number', () => {
+            const record = new CacheRecord('testRecord', '1.0.0', '123', 1)
+            expect(record.expiration).toBeTruthy()
+        })
+        it('sets expiration when passed an array', () => {
+            const record = new CacheRecord('testRecord', '1.0.0', '123', [
+                1,
+                'day',
+            ])
+            expect(record.expiration).toBeTruthy()
+        })
+    })
     let record: CacheRecord
     beforeEach(() => {
         record = new CacheRecord('testRecord', '1.0.0', 'testValue')
+    })
+    describe('setValue', () => {
+        it('sets value when passed a function', () => {
+            expect(record.value).not.toBe('123')
+            const setter = jest.fn(() => '123')
+            record.setValue(setter)
+            expect(setter).toHaveBeenCalled()
+            expect(record.value).toBe('123')
+        })
+        it('sets value when passed a regular value', () => {
+            expect(record.value).not.toBe('123')
+            record.setValue('123')
+            expect(record.value).toBe('123')
+        })
     })
     describe('setExpiration', () => {
         const baseDate = new Date()

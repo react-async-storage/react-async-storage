@@ -58,7 +58,6 @@ export class CacheWrapper {
             }
             return null
         }
-
         return record
     }
 
@@ -68,18 +67,15 @@ export class CacheWrapper {
             value?: UpdateSetter<T> | T
             maxAge?: MaxAge
             version?: string
-        },
+        } | null,
         callback?: NodeCallBack<CacheRecord<T>>,
     ): Promise<CacheRecord<T>> {
-        const record = (await this.getRecord<T>(key, {
+        const record = (await this.getRecord(key, {
             allowNull: false,
         })) as CacheRecord<T>
-        record.value =
-            typeof options?.value === 'undefined'
-                ? record.value
-                : options.value instanceof Function
-                ? options.value(record.value)
-                : options.value
+        if (options?.value) {
+            record.setValue(options.value)
+        }
         if (options?.maxAge) {
             record.setExpiration(options.maxAge)
         }
@@ -91,11 +87,10 @@ export class CacheWrapper {
                 callback(null, record)
             }
         } catch (error) {
-            if (callback) {
-                callback(error)
-            } else {
-                throw new CacheError(`error writing key ${key}.`)
+            if (!callback) {
+                throw new CacheError(`error writing key ${key}`)
             }
+            callback(error)
         }
         return record
     }
@@ -105,7 +100,6 @@ export class CacheWrapper {
         {
             fallback = null,
             allowNull = true,
-            preferCache = this.preferCache,
         }: {
             fallback?: T | null
             allowNull?: boolean
@@ -117,7 +111,6 @@ export class CacheWrapper {
         try {
             const record = await this.getRecord<T>(key, {
                 allowNull: !!fallback || allowNull,
-                preferCache,
             })
             if (record) {
                 returnValue = record.value
@@ -125,14 +118,14 @@ export class CacheWrapper {
             if (callback) {
                 callback(null, returnValue)
             }
+            return returnValue
         } catch (error) {
-            if (callback) {
-                callback(error)
-            } else {
+            if (!callback) {
                 throw error
             }
+            callback(error)
         }
-        return returnValue
+        return null
     }
 
     async setItem<T = any>(
@@ -142,12 +135,7 @@ export class CacheWrapper {
         callback?: NodeCallBack<CacheRecord<T>>,
     ): Promise<void> {
         try {
-            const record = new CacheRecord<T>(
-                key,
-                this.version,
-                value instanceof Function ? value() : value,
-                maxAge,
-            )
+            const record = new CacheRecord<T>(key, this.version, value, maxAge)
             await this.instance.setItem(key, record.toObject())
             this.cache.set(key, record)
             if (callback) {
@@ -157,7 +145,7 @@ export class CacheWrapper {
             if (callback) {
                 callback(error)
             } else {
-                throw new CacheError(`error writing key ${key}.`)
+                throw new CacheError(`error writing key ${key}`)
             }
         }
     }
@@ -184,13 +172,10 @@ export class CacheWrapper {
             }
             return mergedValue
         } catch (error) {
-            if (callback) {
-                callback(error)
-            } else if (error instanceof CacheError) {
-                throw error
-            } else {
-                throw new CacheError(`error merging values for key ${key}.`)
+            if (!callback) {
+                throw new CacheError(`error merging values for key ${key}`)
             }
+            callback(error)
         }
     }
 
@@ -256,11 +241,10 @@ export class CacheWrapper {
                 callback(null, records)
             }
         } catch (error) {
-            if (callback) {
-                callback(error)
-            } else {
+            if (!callback) {
                 throw error
             }
+            callback(error)
         }
         return records
     }

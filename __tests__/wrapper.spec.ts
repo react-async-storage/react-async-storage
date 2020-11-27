@@ -1,6 +1,6 @@
 import { CacheError } from '../src/errors'
 import { CacheWrapper } from '../src/wrapper'
-import cacheFactory from '../src'
+import cacheFactory, { CacheRecord } from '../src'
 import merge from 'lodash.merge'
 
 describe('CacheWrapper tests', () => {
@@ -54,9 +54,95 @@ describe('CacheWrapper tests', () => {
                 )
             }
         })
-        it('returns null when allowNull is true and no value', async () => {
+        it('returns null when allowNull is true and no value is returned', async () => {
             const record = await wrapper.getRecord('testValue')
             expect(record).toBeNull()
+        })
+        it('throws an error when stale value is returned and allowNull is false', async () => {
+            try {
+                const record = new CacheRecord(
+                    'testValue',
+                    '1.0.0',
+                    'someValue',
+                )
+                record.expiration = new Date().getTime() - 100
+                await wrapper.instance.setItem('testValue', record.toObject())
+                await wrapper.getRecord('testValue', { allowNull: false })
+            } catch (error) {
+                expect(error).toBeInstanceOf(CacheError)
+                expect(error.message).toBe(
+                    `<R-Cache> stale value return for key testValue: to resolve this error allowNull when calling getRecord`,
+                )
+            }
+        })
+        it('returns null when allowNull is true and stale value is returned', async () => {
+            const record = new CacheRecord('testValue', '1.0.0', 'someValue')
+            record.expiration = new Date().getTime() - 100
+            await wrapper.instance.setItem('testValue', record.toObject())
+            const retrievedRecord = await wrapper.getRecord('testValue')
+            expect(retrievedRecord).toBeNull()
+        })
+    })
+    describe('updateRecord', () => {
+        it('updates record value when passed a regular value', async () => {
+            await wrapper.setItem('testValue', testValue)
+            await wrapper.updateRecord('testValue', { value: '123' })
+            const record = await wrapper.getRecord('testValue')
+            expect(record?.value).toBe('123')
+        })
+        it('updates record value when passed a function', async () => {
+            await wrapper.setItem('testValue', testValue)
+            const setter = jest.fn((val: string) => val + '123')
+            await wrapper.updateRecord('testValue', { value: setter })
+            expect(setter).toHaveBeenCalled()
+            const record = await wrapper.getRecord('testValue')
+            expect(record?.value).toBe(testValue + '123')
+        })
+        it('updates expiration when passed number', async () => {
+            await wrapper.setItem('testValue', testValue)
+            await wrapper.updateRecord('testValue', { maxAge: 1 })
+            const record = await wrapper.getRecord('testValue')
+            expect(record?.expiration).toBeTruthy()
+        })
+        it('updates expiration when passed array', async () => {
+            await wrapper.setItem('testValue', testValue)
+            await wrapper.updateRecord('testValue', { maxAge: [1, 'day'] })
+            const record = await wrapper.getRecord('testValue')
+            expect(record?.expiration).toBeTruthy()
+        })
+        it('updates version correctly', async () => {
+            await wrapper.setItem('testValue', testValue)
+            await wrapper.updateRecord('testValue', { version: '2.0.0' })
+            const record = await wrapper.getRecord('testValue')
+            expect(record?.version).toBe('2.0.0')
+        })
+        it('calls callback with record when callback is passed', async () => {
+            const callback = jest.fn()
+            await wrapper.setItem('testValue', testValue)
+            await wrapper.updateRecord('testValue', null, callback)
+            const record = await wrapper.getRecord('testValue')
+            expect(callback).toBeCalledWith(null, record)
+        })
+        it('passes error to callback when error is thrown and callback is provided', async () => {
+            const callback = jest.fn()
+            await wrapper.setItem('testValue', testValue)
+            wrapper.instance.setItem = async () =>
+                new Promise((_, reject) => reject())
+            await wrapper.updateRecord('testValue', null, callback)
+            expect(callback).toBeCalled()
+        })
+        it('throws CacheError when no callback is provided and an error occurs', async () => {
+            try {
+                await wrapper.setItem('testValue', testValue)
+                wrapper.instance.setItem = async () =>
+                    new Promise((_, reject) => reject())
+                await wrapper.updateRecord('testValue', { value: '123' })
+            } catch (error) {
+                expect(error).toBeInstanceOf(CacheError)
+                expect(error.message).toBe(
+                    '<R-Cache> error writing key testValue',
+                )
+            }
         })
     })
     describe('getItem', () => {
@@ -82,7 +168,7 @@ describe('CacheWrapper tests', () => {
                 )
             }
         })
-        it('calls fallback when provided', async () => {
+        it('returns fallback when provided', async () => {
             const fallback = 'fallback'
             const result = await wrapper.getItem('testValue', { fallback })
             expect(result).toBe(fallback)
@@ -94,6 +180,26 @@ describe('CacheWrapper tests', () => {
                 allowNull: false,
             })
             expect(result).toBe(fallback)
+        })
+        it('calls callback with record when callback is passed', async () => {
+            const callback = jest.fn()
+            await wrapper.setItem('testValue', testValue)
+            await wrapper.getItem('testValue', undefined, callback)
+            expect(callback).toBeCalledWith(null, testValue)
+        })
+        it('passes error to callback when error is thrown and callback is provided', async () => {
+            const callback = jest.fn()
+            await wrapper.setItem('testValue', testValue)
+            wrapper.getRecord = async () => new Promise((_, reject) => reject())
+            await wrapper.getItem('testValue', undefined, callback)
+            expect(callback).toBeCalled()
+        })
+        it('throws when no callback is provided and an error occurs', async () => {
+            try {
+                await wrapper.getItem('testValue', { allowNull: false })
+            } catch (error) {
+                expect(error).toBeInstanceOf(CacheError)
+            }
         })
     })
     describe('setItem', () => {
@@ -108,6 +214,31 @@ describe('CacheWrapper tests', () => {
             expect(await wrapper.getItem('testValue')).toBe(testValue)
             await new Promise((r) => setTimeout(r, 200))
             expect(await wrapper.getItem('testValue')).toBeNull()
+        })
+        it('calls callback with record when callback is passed', async () => {
+            const callback = jest.fn()
+            await wrapper.setItem('testValue', testValue, undefined, callback)
+            const record = await wrapper.getRecord('testValue')
+            expect(callback).toBeCalledWith(null, record)
+        })
+        it('passes error to callback when error is thrown and callback is provided', async () => {
+            const callback = jest.fn()
+            wrapper.instance.setItem = async () =>
+                new Promise((_, reject) => reject())
+            await wrapper.setItem('testValue', testValue, undefined, callback)
+            expect(callback).toBeCalled()
+        })
+        it('throws CacheError when no callback is provided and an error occurs', async () => {
+            try {
+                wrapper.instance.setItem = async () =>
+                    new Promise((_, reject) => reject())
+                await wrapper.setItem('testValue', testValue)
+            } catch (error) {
+                expect(error).toBeInstanceOf(CacheError)
+                expect(error.message).toBe(
+                    '<R-Cache> error writing key testValue',
+                )
+            }
         })
     })
 
@@ -132,32 +263,34 @@ describe('CacheWrapper tests', () => {
             expect(mergedResult).toEqual(merged)
             expect(await wrapper.getItem('testValue')).toEqual(merged)
         })
-        it('throws an error when merge value is not an object', async () => {
+        it('calls callback with merge result when callback is provided', async () => {
+            const callback = jest.fn()
             await wrapper.setItem('testValue', value1)
-            try {
-                await wrapper.mergeItem('testValue', 1)
-            } catch (error) {
-                expect(error.message).toBe(
-                    '<R-Cache> merge value must be of typeof object',
-                )
-            }
+            const mergedResult = await wrapper.mergeItem(
+                'testValue',
+                value2,
+                callback,
+            )
+            expect(callback).toHaveBeenCalledWith(null, mergedResult)
         })
-        it('throws an error when merge target is null', async () => {
+        it('calls callback with error when callback is passed', async () => {
+            const callback = jest.fn()
+            await wrapper.setItem('testValue', value1)
+            wrapper.instance.setItem = async () =>
+                new Promise((_, reject) => reject())
+            await wrapper.mergeItem('testValue', value2, callback)
+            expect(callback).toHaveBeenCalled()
+        })
+        it('throws CacheError when no callback is provided', async () => {
+            await wrapper.setItem('testValue', value1)
+            wrapper.instance.setItem = async () =>
+                new Promise((_, reject) => reject())
             try {
                 await wrapper.mergeItem('testValue', value2)
             } catch (error) {
+                expect(error).toBeInstanceOf(CacheError)
                 expect(error.message).toBe(
-                    '<R-Cache> null value returned for key testValue',
-                )
-            }
-        })
-        it('throws an error when merge target is not an object', async () => {
-            await wrapper.setItem('testValue', 1)
-            try {
-                await wrapper.mergeItem('testValue', value2)
-            } catch (error) {
-                expect(error.message).toBe(
-                    '<R-Cache> error merging values for key testValue.',
+                    '<R-Cache> error merging values for key testValue',
                 )
             }
         })
@@ -251,7 +384,7 @@ describe('CacheWrapper tests', () => {
             expect(keys).toEqual(['testValue1', 'testValue2', 'otherValue'])
         })
     })
-    describe('records', () => {
+    describe('getRecords', () => {
         it('retrieves records correctly', async () => {
             await wrapper.multiSet([
                 { key: 'testValue1', value: 1 },
@@ -272,6 +405,39 @@ describe('CacheWrapper tests', () => {
                     expiration: expect.any(Number),
                 },
             ])
+        })
+        it('calls callback with records when callback is passed', async () => {
+            const callback = jest.fn()
+            await wrapper.multiSet([
+                { key: 'testValue1', value: 1 },
+                { key: 'testValue2', value: 2, maxAge: 150 },
+            ])
+            const records = await wrapper.getRecords(true, callback)
+            expect(callback).toHaveBeenCalledWith(null, records)
+        })
+        it('calls callback with error when callback is passed', async () => {
+            const callback = jest.fn()
+            await wrapper.multiSet([
+                { key: 'testValue1', value: 1 },
+                { key: 'testValue2', value: 2, maxAge: 150 },
+            ])
+            wrapper.getRecord = async () => new Promise((_, reject) => reject())
+            await wrapper.getRecords(true, callback)
+            expect(callback).toHaveBeenCalled()
+        })
+        it('throws CacheError when no callback is provided', async () => {
+            await wrapper.multiSet([
+                { key: 'testValue1', value: 1 },
+                { key: 'testValue2', value: 2, maxAge: 150 },
+            ])
+            wrapper.getRecord = () => {
+                throw new Error('test')
+            }
+            try {
+                await wrapper.getRecords()
+            } catch (error) {
+                expect(error.message).toBe('test')
+            }
         })
     })
 })

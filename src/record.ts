@@ -1,4 +1,4 @@
-import { CacheObject, MaxAge } from './types'
+import { CacheObject, MaxAge, Setter, UpdateSetter } from './types'
 import { ValueError } from './errors'
 
 export const now = (): number => new Date().getTime()
@@ -8,10 +8,16 @@ export class CacheRecord<T = any> {
     public value: T
     public expiration?: number
 
-    constructor(key: string, version: string, value: T, maxAge?: MaxAge) {
+    constructor(
+        key: string,
+        version: string,
+        value: T | Setter<T>,
+        maxAge?: MaxAge,
+    ) {
         this.key = key
         this.version = version
-        this.value = value
+        //@ts-expect-error - https://github.com/microsoft/TypeScript/issues/37663
+        this.value = typeof value === 'function' ? value() : value
         this.setExpiration(maxAge)
     }
 
@@ -63,7 +69,10 @@ export class CacheRecord<T = any> {
         }
         this.expiration = num * unitToMSMap[unit] + now()
     }
-
+    setValue(value: UpdateSetter<T> | T) {
+        //@ts-expect-error - https://github.com/microsoft/TypeScript/issues/37663
+        this.value = typeof value === 'function' ? value(this.value) : value
+    }
     static from<T>(cacheObject: CacheObject<T>): CacheRecord<T> {
         const record = new CacheRecord<T>(
             cacheObject.key,
