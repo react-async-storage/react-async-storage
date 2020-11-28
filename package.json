@@ -64,6 +64,7 @@
         "@types/lodash.merge": "^4.6.6",
         "@typescript-eslint/eslint-plugin": "^4.8.2",
         "@typescript-eslint/parser": "^4.8.2",
+        "docusaurus-plugin-typedoc": "^0.4.0",
         "eslint": "^7.14.0",
         "eslint-config-prettier": "^6.15.0",
         "eslint-plugin-import": "^2.22.1",
@@ -82,6 +83,8 @@
         "rollup-plugin-terser": "^7.0.2",
         "rollup-plugin-typescript2": "^0.29.0",
         "ts-jest": "^26.4.4",
+        "typedoc": "^0.19.2",
+        "typedoc-plugin-markdown": "^3.0.11",
         "typescript": "^4.1.2"
     },
     "peerDependencies": {
@@ -89,8 +92,8 @@
     },
     "optionalDependencies": {
         "@react-native-community/async-storage": "*",
-        "react-native": "*",
-        "react": "*"
+        "react": "*",
+        "react-native": "*"
     },
     "dependencies": {
         "@aveq-research/localforage-asyncstorage-driver": "^2.0.0",
