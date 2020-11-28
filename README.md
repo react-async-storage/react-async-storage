@@ -30,3 +30,23 @@ yarn add r-cache
 ### React and React-Native
 
 The initial intention beyond creating this package was to create an async cache wrapper that can be used in both React and React-Native. To use this package in React-Native, you should first install [React Native Async Storage](https://github.com/react-native-async-storage/async-storage) by following the instructions of that package. You should than use this package normally - the installation of the required localForage driver will be done automatically.
+
+## Usage
+
+The initation of the cache is async:
+
+```typescript
+import { cacheFactory } from 'r-cache'
+
+export const myStore = (async () =>
+    await cacheFactory({
+        storeName: 'myStore',
+        version: '1.0.1',
+    }))()
+
+export const myOtherStore = (async () =>
+    await cacheFactory({
+        storeName: 'myOtherStore',
+        version: '2.0.0',
+    }))()
+```

@@ -10,12 +10,15 @@ module.exports = {
         'eslint:recommended',
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
+        'plugin:react/recommended',
+        'plugin:react-hooks/recommended',
         'plugin:import/errors',
         'plugin:import/warnings',
         'plugin:import/typescript',
         'plugin:jest/recommended',
         'plugin:prettier/recommended',
         'prettier/@typescript-eslint',
+        'prettier/react',
     ],
     parserOptions: {
         project: './tsconfig.json',
@@ -32,6 +35,7 @@ module.exports = {
             { ignoreIIFE: true, ignoreVoid: true },
         ],
         'sort-imports-es6-autofix/sort-imports-es6': 2,
+        'react-hooks/exhaustive-deps': 0,
     },
     overrides: [
         {
