@@ -9,6 +9,12 @@ import semVer from 'compare-versions'
 export * from './types'
 export { CacheRecord }
 
+const state: {
+    wrappers: Record<string, Record<string, CacheWrapper>>
+    init: boolean
+    rnDriverDefined: boolean
+} = { wrappers: {}, init: false, rnDriverDefined: false }
+
 const retrieveAndPruneRecords = async (
     allowStale: boolean,
     instance: LocalForage,
@@ -41,11 +47,10 @@ const retrieveAndPruneRecords = async (
     await Promise.all(
         invalidRecordKeys.map(async (key) => await instance.removeItem(key)),
     )
-
     return records.filter((record) => !invalidRecordKeys.includes(record.key))
 }
 
-export default async function CacheFactory({
+export async function createCacheInstance({
     name = 'RCache',
     version = '1.0.0',
     storeName = 'defaultCache',
@@ -57,34 +62,58 @@ export default async function CacheFactory({
         name,
         ...rest,
     }
-
-    localforage.config()
-    await localforage.ready()
-
+    if (!state.init) {
+        localforage.config()
+        await localforage.ready()
+        state.init = true
+    }
     if (navigator.product === 'ReactNative') {
         const AsyncStorageDriver = driverWithDefaultSerialization()
         config.driver = AsyncStorageDriver._driver
-        await localforage.defineDriver(AsyncStorageDriver)
-        await localforage.setDriver(config.driver)
+        if (!state.rnDriverDefined) {
+            await localforage.defineDriver(AsyncStorageDriver)
+            await localforage.setDriver(config.driver)
+            state.rnDriverDefined = true
+        }
     }
 
-    const instance = localforage.createInstance({
-        storeName,
-        ...config,
-    })
-    const validRecords = await retrieveAndPruneRecords(
-        allowStale,
-        instance,
-        version,
-    )
-    const cache = new Map(validRecords.map((record) => [record.key, record]))
-    const wrapper = new CacheWrapper({
-        allowStale,
-        cache,
-        instance,
-        name,
-        preferCache,
-        version,
-    })
-    return wrapper
+    if (!state.wrappers[name]) {
+        state.wrappers[name] = {}
+    }
+    if (!state.wrappers[name][storeName]) {
+        const instance = localforage.createInstance({
+            storeName,
+            ...config,
+        })
+        const validRecords = await retrieveAndPruneRecords(
+            allowStale,
+            instance,
+            version,
+        )
+        const cache = new Map(
+            validRecords.map((record) => [record.key, record]),
+        )
+        state.wrappers[name][storeName] = new CacheWrapper({
+            allowStale,
+            cache,
+            instance,
+            name,
+            preferCache,
+            version,
+        })
+    }
+    return state.wrappers[name][storeName]
+}
+
+export async function dropCacheInstance({
+    name = 'RCache',
+    storeName = 'defaultCache',
+}: { name?: string; storeName?: string } = {}): Promise<void> {
+    if (!state.wrappers[name]?.[storeName]) {
+        throw new Error('')
+    }
+    let wrapper: CacheWrapper | null = state.wrappers[name][storeName]
+    await wrapper.instance.dropInstance({ name, storeName })
+    delete state.wrappers[name][storeName]
+    wrapper = null
 }

@@ -1,15 +1,15 @@
 import { CacheError } from '../src/errors'
+import { CacheRecord, createCacheInstance, dropCacheInstance } from '../src'
 import { CacheWrapper } from '../src/wrapper'
-import cacheFactory, { CacheRecord } from '../src'
 import merge from 'lodash.merge'
 
 describe('CacheWrapper tests', () => {
     let wrapper: CacheWrapper
     beforeEach(async () => {
-        wrapper = await cacheFactory()
+        wrapper = await createCacheInstance()
     })
     afterEach(async () => {
-        await wrapper.clear()
+        await dropCacheInstance()
         //@ts-ignore
         wrapper = null
     })

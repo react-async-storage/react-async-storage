@@ -1,54 +1,64 @@
+import { CacheRecord, createCacheInstance, dropCacheInstance } from '../src'
 import { CacheWrapper } from '../src/wrapper'
-import cacheFactory from '../src'
 import localForage from 'localforage'
 
-describe('cacheFactory tests', () => {
+describe('createCacheInstance tests', () => {
     let wrapper: CacheWrapper
+    let dropInstanceAfterTest: boolean
+    beforeEach(() => {
+        dropInstanceAfterTest = true
+    })
     afterEach(async () => {
-        await wrapper.clear()
+        if (dropInstanceAfterTest) {
+            await dropCacheInstance()
+        }
         //@ts-ignore
         wrapper = null
     })
     it('sets default name correcty', async () => {
-        wrapper = await cacheFactory()
+        wrapper = await createCacheInstance()
         expect(wrapper.name).toEqual('RCache')
     })
     it('sets custom name correcty', async () => {
-        wrapper = await cacheFactory({ name: 'customName' })
+        dropInstanceAfterTest = false
+        wrapper = await createCacheInstance({ name: 'customName' })
         expect(wrapper.name).toEqual('customName')
+        await dropCacheInstance({ name: 'customName' })
     })
     it('sets default storeName correcty', async () => {
-        wrapper = await cacheFactory()
+        wrapper = await createCacheInstance()
         //@ts-ignore
         expect(wrapper.instance._config.storeName).toEqual('defaultCache')
     })
     it('sets custom storeName correcty', async () => {
-        wrapper = await cacheFactory({ storeName: 'customName' })
+        dropInstanceAfterTest = false
+        wrapper = await createCacheInstance({ storeName: 'customName' })
         //@ts-ignore
         expect(wrapper.instance._config.storeName).toEqual('customName')
+        await dropCacheInstance({ storeName: 'customName' })
     })
     it('sets default version value correcty', async () => {
-        wrapper = await cacheFactory()
+        wrapper = await createCacheInstance()
         expect(wrapper.version).toBe('1.0.0')
     })
     it('sets custom version value correcty', async () => {
-        wrapper = await cacheFactory({ version: '2.0.0' })
+        wrapper = await createCacheInstance({ version: '2.0.0' })
         expect(wrapper.version).toBe('2.0.0')
     })
     it('sets default allowStale value correcty', async () => {
-        wrapper = await cacheFactory()
+        wrapper = await createCacheInstance()
         expect(wrapper.allowStale).toBeFalsy()
     })
     it('sets custom allowStale value correcty', async () => {
-        wrapper = await cacheFactory({ allowStale: true })
+        wrapper = await createCacheInstance({ allowStale: true })
         expect(wrapper.allowStale).toBeTruthy()
     })
     it('sets default preferCache value correcty', async () => {
-        wrapper = await cacheFactory()
+        wrapper = await createCacheInstance()
         expect(wrapper.preferCache).toBeTruthy()
     })
     it('sets custom preferCache value correcty', async () => {
-        wrapper = await cacheFactory({ preferCache: false })
+        wrapper = await createCacheInstance({ preferCache: false })
         expect(wrapper.allowStale).toBeFalsy()
     })
     describe('driver handling tests', () => {
@@ -62,7 +72,7 @@ describe('cacheFactory tests', () => {
         })
         it('sets driver correctly for web', async () => {
             productGetter.mockReturnValue('Gecko')
-            wrapper = await cacheFactory()
+            wrapper = await createCacheInstance()
             //@ts-ignore
             expect(localForage._driver).toBe('localStorageWrapper')
             //@ts-ignore
@@ -70,7 +80,7 @@ describe('cacheFactory tests', () => {
         })
         it('sets driver correctly for RN', async () => {
             productGetter.mockReturnValue('ReactNative')
-            wrapper = await cacheFactory()
+            wrapper = await createCacheInstance()
             //@ts-ignore
             expect(localForage._driver).toBe(
                 'rnAsyncStorageWrapper-withDefaultSerializer',
@@ -84,7 +94,7 @@ describe('cacheFactory tests', () => {
 
     describe('data pruning tests', () => {
         it('prunes expired records correctly', async () => {
-            wrapper = await cacheFactory()
+            wrapper = await createCacheInstance()
             await wrapper.multiSet([
                 { key: 'testValue1', value: 1 },
                 { key: 'testValue2', value: 2, maxAge: 10 },
@@ -113,7 +123,7 @@ describe('cacheFactory tests', () => {
                 },
             ])
             await new Promise((r) => setTimeout(r, 200))
-            await cacheFactory()
+            await createCacheInstance()
             records = await wrapper.getRecords()
             expect(records.map((record) => record.toObject())).toEqual([
                 {
@@ -131,35 +141,26 @@ describe('cacheFactory tests', () => {
             ])
         })
         it('prunes old versioned records correctly', async () => {
-            wrapper = await cacheFactory()
-            await wrapper.multiSet([
-                { key: 'testValue1', value: 1 },
-                { key: 'testValue2', value: 2 },
-            ])
-            await wrapper.updateRecord('testValue2', {
-                version: '0.5.0',
+            const record1 = new CacheRecord('currentRecord', '1.0.0', 1)
+            const record2 = new CacheRecord('oldRecord', '0.0.5', 2)
+            let instance = localForage.createInstance({
+                name: 'RCache',
+                storeName: 'defaultCache',
             })
-            let records = await wrapper.getRecords()
+            await instance.setItem('currentRecord', record1.toObject())
+            await instance.setItem('oldRecord', record2.toObject())
+            const retrievedRecord1 = await instance.getItem('currentRecord')
+            const retrievedRecord2 = await instance.getItem('oldRecord')
+            //@ts-ignore
+            instance = null
+            expect(retrievedRecord1).toEqual(record1.toObject())
+            expect(retrievedRecord2).toEqual(record2.toObject())
+            wrapper = await createCacheInstance()
+            const records = await wrapper.getRecords()
             expect(records.map((record) => record.toObject())).toEqual([
                 {
                     expiration: undefined,
-                    key: 'testValue1',
-                    value: 1,
-                    version: '1.0.0',
-                },
-                {
-                    expiration: undefined,
-                    key: 'testValue2',
-                    value: 2,
-                    version: '0.5.0',
-                },
-            ])
-            await cacheFactory()
-            records = await wrapper.getRecords()
-            expect(records.map((record) => record.toObject())).toEqual([
-                {
-                    expiration: undefined,
-                    key: 'testValue1',
+                    key: 'currentRecord',
                     value: 1,
                     version: '1.0.0',
                 },
@@ -168,12 +169,14 @@ describe('cacheFactory tests', () => {
     })
     describe('multiple store tests', () => {
         it('creates seperate stores correctly', async () => {
-            const wrapperOne = (wrapper = await cacheFactory())
+            const wrapperOne = (wrapper = await createCacheInstance())
             await wrapperOne.multiSet([
                 { key: 'wrapperOneValue1', value: 1 },
                 { key: 'wrapperOneValue2', value: 2 },
             ])
-            const wrapperTwo = await cacheFactory({ storeName: 'wrapperTwo' })
+            const wrapperTwo = await createCacheInstance({
+                storeName: 'wrapperTwo',
+            })
             await wrapperTwo.multiSet([
                 { key: 'wrapperTwoValue1', value: 3 },
                 { key: 'wrapperTwoValue2', value: 4 },
@@ -216,12 +219,14 @@ describe('cacheFactory tests', () => {
             ])
         })
         it('clears data correctly', async () => {
-            const wrapperOne = (wrapper = await cacheFactory())
+            const wrapperOne = (wrapper = await createCacheInstance())
             await wrapperOne.multiSet([
                 { key: 'wrapperOneValue1', value: 1 },
                 { key: 'wrapperOneValue2', value: 2 },
             ])
-            const wrapperTwo = await cacheFactory({ storeName: 'wrapperTwo' })
+            const wrapperTwo = await createCacheInstance({
+                storeName: 'wrapperTwo',
+            })
             await wrapperTwo.multiSet([
                 { key: 'wrapperTwoValue1', value: 3 },
                 { key: 'wrapperTwoValue2', value: 4 },
