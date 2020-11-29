@@ -5,7 +5,7 @@
     "scripts": {
         "docusaurus": "docusaurus",
         "start": "docusaurus start",
-        "build": "docusaurus build",
+        "build": "rimraf build && docusaurus build",
         "swizzle": "docusaurus swizzle",
         "deploy": "docusaurus deploy",
         "serve": "docusaurus serve",
@@ -36,6 +36,7 @@
         "@tsconfig/docusaurus": "^1.0.2",
         "@types/react": "^17.0.0",
         "@types/react-helmet": "^6.1.0",
-        "@types/react-router-dom": "^5.1.6"
+        "@types/react-router-dom": "^5.1.6",
+        "rimraf": "^3.0.2"
     }
 }

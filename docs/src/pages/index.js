@@ -1,10 +1,10 @@
-import React from 'react'
-import clsx from 'clsx'
 import Layout from '@theme/Layout'
 import Link from '@docusaurus/Link'
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
-import useBaseUrl from '@docusaurus/useBaseUrl'
+import React from 'react'
+import clsx from 'clsx'
 import styles from './styles.module.css'
+import useBaseUrl from '@docusaurus/useBaseUrl'
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
 
 const features = [
     {

@@ -2,51 +2,17 @@
 
 # RCache: Production Ready Async Cache
 
-This package offers a sophisticated but simple to use async cache implementation built on-top of localForage.
-
-It can be used in any browser based web-app as well as in React-Native applications.
+This package offers a sophisticated but simple to use async storage implementation built on-top of localForage for React and React Native.
 
 It offers the following benefits:
 
--   browser and react-native support
+-   browser and react-native support in a single library
 -   first-class typescript support
 -   extended and streamlined api
 -   support of record expiration
 -   support of cache versioning
 -   distinct errors that can be tested with "instanceof"
+-   support for react hooks
+-   easy integration with 3rd party libraries such as react-redux
 
-## Installation
-
-```bash
-npm install r-cache
-```
-
-or
-
-```bash
-yarn add r-cache
-```
-
-### React and React-Native
-
-The initial intention beyond creating this package was to create an async cache wrapper that can be used in both React and React-Native. To use this package in React-Native, you should first install [React Native Async Storage](https://github.com/react-native-async-storage/async-storage) by following the instructions of that package. You should than use this package normally - the installation of the required localForage driver will be done automatically.
-
-## Usage
-
-The initation of the cache is async:
-
-```typescript
-import { cacheFactory } from 'r-cache'
-
-export const myStore = (async () =>
-    await cacheFactory({
-        storeName: 'myStore',
-        version: '1.0.1',
-    }))()
-
-export const myOtherStore = (async () =>
-    await cacheFactory({
-        storeName: 'myOtherStore',
-        version: '2.0.0',
-    }))()
-```
+[INSERT LINK TO DOCUMENTATION](https://github.github.com/gfm/)

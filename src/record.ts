@@ -1,7 +1,7 @@
 import { CacheObject, MaxAge, Setter, UpdateSetter } from './types'
 import { ValueError } from './errors'
 
-export const now = (): number => new Date().getTime()
+const now = (): number => new Date().getTime()
 export class CacheRecord<T = any> {
     public key: string
     public version: string
