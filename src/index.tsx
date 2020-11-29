@@ -1,7 +1,8 @@
-import { CacheObject, CacheOptions } from './types'
+import { CacheObject, CacheOptions, CacheProviderProps } from './types'
 import { CacheRecord } from './record'
 import { CacheWrapper } from './wrapper'
 import { driverWithDefaultSerialization } from '@aveq-research/localforage-asyncstorage-driver'
+import React, { createContext, useEffect, useState } from 'react'
 import localforage from 'localforage'
 import semVer from 'compare-versions'
 
@@ -9,11 +10,59 @@ import semVer from 'compare-versions'
 export * from './types'
 export { CacheRecord }
 
+export const DEFAULTS = {
+    NAME: 'RCache',
+    STORE_NAME: 'defaultCache',
+    VERSION: '1.0.0',
+    ALLOW_STALE: false,
+    PREFER_CACHE: true,
+}
+
 const state: {
     wrappers: Record<string, Record<string, CacheWrapper>>
     init: boolean
     rnDriverDefined: boolean
 } = { wrappers: {}, init: false, rnDriverDefined: false }
+
+export const CacheContext = createContext<
+    Record<string, Record<string, CacheWrapper>>
+>({})
+
+export default function CacheProvider({
+    onReady,
+    children,
+    options,
+}: CacheProviderProps): React.ReactElement {
+    const [isLoaded, setIsLoaded] = useState(false)
+
+    useEffect(() => {
+        ;(async () => {
+            if (
+                !options ||
+                (typeof options === 'object' && !Array.isArray(options))
+            ) {
+                await createCacheInstance(options)
+            } else {
+                await Promise.all(
+                    options.map(async (o) => await createCacheInstance(o)),
+                )
+            }
+            setIsLoaded(true)
+        })()
+    }, [])
+
+    useEffect(() => {
+        if (isLoaded && onReady) {
+            onReady()
+        }
+    }, [isLoaded])
+
+    return (
+        <CacheContext.Provider value={state.wrappers}>
+            {children}
+        </CacheContext.Provider>
+    )
+}
 
 const retrieveAndPruneRecords = async (
     allowStale: boolean,
@@ -51,11 +100,11 @@ const retrieveAndPruneRecords = async (
 }
 
 export async function createCacheInstance({
-    name = 'RCache',
-    version = '1.0.0',
-    storeName = 'defaultCache',
-    allowStale = false,
-    preferCache = true,
+    name = DEFAULTS.NAME,
+    version = DEFAULTS.VERSION,
+    storeName = DEFAULTS.STORE_NAME,
+    allowStale = DEFAULTS.ALLOW_STALE,
+    preferCache = DEFAULTS.PREFER_CACHE,
     ...rest
 }: CacheOptions = {}): Promise<CacheWrapper> {
     const config: LocalForageOptions = {
@@ -106,14 +155,13 @@ export async function createCacheInstance({
 }
 
 export async function dropCacheInstance({
-    name = 'RCache',
-    storeName = 'defaultCache',
+    name = DEFAULTS.NAME,
+    storeName = DEFAULTS.STORE_NAME,
 }: { name?: string; storeName?: string } = {}): Promise<void> {
     if (!state.wrappers[name]?.[storeName]) {
         throw new Error('')
     }
-    let wrapper: CacheWrapper | null = state.wrappers[name][storeName]
+    const wrapper = state.wrappers[name][storeName]
     await wrapper.instance.dropInstance({ name, storeName })
     delete state.wrappers[name][storeName]
-    wrapper = null
 }
