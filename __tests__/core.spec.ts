@@ -1,5 +1,9 @@
-import { CacheRecord, createCacheInstance, dropCacheInstance } from '../src'
-import { CacheWrapper } from '../src/wrapper'
+import {
+    CacheRecord,
+    CacheWrapper,
+    createCacheInstance,
+    dropCacheInstance,
+} from '../src'
 import localForage from 'localforage'
 
 describe('createCacheInstance tests', () => {
@@ -19,12 +23,6 @@ describe('createCacheInstance tests', () => {
         wrapper = await createCacheInstance()
         expect(wrapper.name).toEqual('RCache')
     })
-    it('sets custom name correcty', async () => {
-        dropInstanceAfterTest = false
-        wrapper = await createCacheInstance({ name: 'customName' })
-        expect(wrapper.name).toEqual('customName')
-        await dropCacheInstance({ name: 'customName' })
-    })
     it('sets default storeName correcty', async () => {
         wrapper = await createCacheInstance()
         //@ts-ignore
@@ -35,7 +33,7 @@ describe('createCacheInstance tests', () => {
         wrapper = await createCacheInstance({ storeName: 'customName' })
         //@ts-ignore
         expect(wrapper.instance._config.storeName).toEqual('customName')
-        await dropCacheInstance({ storeName: 'customName' })
+        await dropCacheInstance('customName')
     })
     it('sets default version value correcty', async () => {
         wrapper = await createCacheInstance()

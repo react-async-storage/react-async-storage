@@ -36,7 +36,6 @@ export type MaxAge = number | [number, TimeUnit]
 export type NodeCallBack<T = any> = (error: Error | null, value?: T) => void
 export type Setter<T> = () => T
 export type UpdateSetter<T> = (value: T) => T
-
 export interface CacheProviderProps {
     children: any
     onReady?: () => void

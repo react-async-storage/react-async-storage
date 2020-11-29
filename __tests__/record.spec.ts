@@ -1,6 +1,4 @@
-import { CacheRecord } from '../src'
-import { TimeUnit } from '../src/types'
-import { ValueError } from '../src/errors'
+import { CacheRecord, TimeUnit, ValueError } from '../src'
 
 describe('CacheRecord tests', () => {
     describe('constructor', () => {

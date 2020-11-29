@@ -1,6 +1,10 @@
-import { CacheError } from '../src/errors'
-import { CacheRecord, createCacheInstance, dropCacheInstance } from '../src'
-import { CacheWrapper } from '../src/wrapper'
+import {
+    CacheError,
+    CacheRecord,
+    CacheWrapper,
+    createCacheInstance,
+    dropCacheInstance,
+} from '../src/'
 import merge from 'lodash.merge'
 
 describe('CacheWrapper tests', () => {

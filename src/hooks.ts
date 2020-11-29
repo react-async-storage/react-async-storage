@@ -1,14 +1,15 @@
-import { CacheContext, DEFAULTS } from '.'
+import { CacheContext } from './provider'
 import { CacheWrapper } from './wrapper'
+import { DEFAULTS } from './constants'
+import { ValueError } from './errors'
 import { useContext } from 'react'
 
 export function useCache({
-    name = DEFAULTS.NAME,
     storeName = DEFAULTS.STORE_NAME,
 }: { name?: string; storeName?: string } = {}): CacheWrapper {
     const context = useContext(CacheContext)
-    if (!context[name]?.[storeName]) {
-        throw new Error('')
+    if (!Reflect.has(context, storeName)) {
+        throw new ValueError(`invalid storeName ${storeName}`)
     }
-    return context[name][storeName]
+    return context[storeName]
 }
