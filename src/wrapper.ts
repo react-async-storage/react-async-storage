@@ -14,7 +14,7 @@ export class CacheWrapper {
     readonly allowStale: boolean
     readonly cache: Cache = new Map()
     readonly instance: LocalForage
-    readonly name: string
+    readonly storeName: string
     readonly preferCache: boolean
     readonly version: string
 
@@ -22,7 +22,7 @@ export class CacheWrapper {
         this.allowStale = options.allowStale
         this.cache = options.cache
         this.instance = options.instance
-        this.name = options.name
+        this.storeName = options.storeName
         this.preferCache = options.preferCache
         this.version = options.version
     }

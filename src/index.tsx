@@ -1,12 +1,7 @@
 export { CacheError, ValueError } from './errors'
-export {
-    cacheFactory,
-    createCacheInstance,
-    dropCacheInstance,
-    getCache,
-} from './core'
-export { CacheRecord } from './record'
+export { cacheFactory, createCacheInstance, dropCacheInstance } from './core'
 export { CacheProvider, CacheContext } from './provider'
+export { CacheRecord } from './record'
 export { CacheWrapper } from './wrapper'
 export { DEFAULTS } from './constants'
 export { useCache } from './hooks'

@@ -1,15 +1,20 @@
 import { CacheProviderProps } from './types'
 import { CacheWrapper } from './wrapper'
 import { cacheFactory } from './core'
-import React, { createContext, useEffect, useState } from 'react'
+import React, {
+    PropsWithChildren,
+    createContext,
+    useEffect,
+    useState,
+} from 'react'
 
 export const CacheContext = createContext<Record<string, CacheWrapper>>({})
 
 export function CacheProvider({
     onReady,
-    children,
     options,
-}: CacheProviderProps): React.ReactElement {
+    children,
+}: PropsWithChildren<CacheProviderProps>): React.ReactElement {
     const [isLoaded, setIsLoaded] = useState(false)
     const [wrappers, setWrappers] = useState<Record<string, CacheWrapper>>({})
     useEffect(() => {

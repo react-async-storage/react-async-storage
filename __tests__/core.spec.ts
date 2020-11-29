@@ -21,12 +21,12 @@ describe('createCacheInstance tests', () => {
     })
     it('sets default name correcty', async () => {
         wrapper = await createCacheInstance()
-        expect(wrapper.name).toEqual('RCache')
+        //@ts-ignore
+        expect(wrapper.instance._config.name).toEqual('RCache')
     })
     it('sets default storeName correcty', async () => {
         wrapper = await createCacheInstance()
-        //@ts-ignore
-        expect(wrapper.instance._config.storeName).toEqual('defaultCache')
+        expect(wrapper.storeName).toEqual('defaultCache')
     })
     it('sets custom storeName correcty', async () => {
         dropInstanceAfterTest = false

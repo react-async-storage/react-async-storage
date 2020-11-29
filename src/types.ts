@@ -9,7 +9,7 @@ export interface CacheObject<T = any> {
 }
 export interface CacheWrapperOptions {
     instance: LocalForage
-    name: string
+    storeName: string
     version: string
     cache: Cache
     allowStale: boolean
@@ -37,7 +37,6 @@ export type NodeCallBack<T = any> = (error: Error | null, value?: T) => void
 export type Setter<T> = () => T
 export type UpdateSetter<T> = (value: T) => T
 export interface CacheProviderProps {
-    children: any
     onReady?: () => void
     options?: CacheOptions | CacheOptions[]
 }

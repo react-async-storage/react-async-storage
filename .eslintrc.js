@@ -39,7 +39,7 @@ module.exports = {
     },
     overrides: [
         {
-            files: ['*.{spec,test}.ts', '**/__{mocks,tests}__/**/*.ts'],
+            files: ['**/__tests__/**/*.spec.*'],
             env: {
                 'jest': true,
                 'jest/globals': true,
@@ -52,6 +52,8 @@ module.exports = {
                 'jest/no-try-expect': 0,
                 'no-delete-var': 0,
                 'no-global-assign': 0,
+                '@typescript-eslint/no-unsafe-call': 0,
+                'react-hooks/rules-of-hooks': 0,
             },
         },
     ],

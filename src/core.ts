@@ -107,7 +107,7 @@ export async function createCacheInstance({
             allowStale,
             cache,
             instance,
-            name: state.namespace,
+            storeName,
             preferCache,
             version,
         })
@@ -129,24 +129,15 @@ export async function dropCacheInstance(
 export async function cacheFactory(
     configs?: CacheOptions | CacheOptions[],
 ): Promise<typeof state.wrappers> {
-    const promises = (configs
-        ? Array.isArray(configs)
-            ? configs
-            : [configs]
-        : []
-    ).map(async (options) => await createCacheInstance(options))
-    await Promise.all(promises)
-    return state['wrappers']
-}
-
-export function getCache(storeName: string): CacheWrapper {
-    if (!state.init) {
-        throw new ConfigError(
-            'cacheFactory must be called before interacting with the cache',
+    if (!configs) {
+        await createCacheInstance()
+    } else {
+        const promises = (Array.isArray(configs) ? configs : [configs]).map(
+            async (options) => {
+                await createCacheInstance(options)
+            },
         )
+        await Promise.all(promises)
     }
-    if (!Reflect.has(state.wrappers, storeName)) {
-        throw new ValueError(`invalid storeName ${storeName}`)
-    }
-    return state.wrappers[storeName]
+    return state['wrappers']
 }
