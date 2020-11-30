@@ -1,9 +1,13 @@
 import {
     CacheRecord,
     CacheWrapper,
+    ValueError,
+    cacheFactory,
     createCacheInstance,
     dropCacheInstance,
+    getCache,
 } from '../src'
+import { ConfigError } from '../src/errors'
 import localForage from 'localforage'
 
 describe('createCacheInstance tests', () => {
@@ -254,5 +258,39 @@ describe('createCacheInstance tests', () => {
                 },
             ])
         })
+    })
+})
+
+describe('getCache tests', () => {
+    it('retrieves cacheRecords correctly', async () => {
+        await cacheFactory([
+            { storeName: 'store1' },
+            { storeName: 'store2' },
+            { storeName: 'store3' },
+        ])
+        const store1 = getCache('store1')
+        const store2 = getCache('store2')
+        const store3 = getCache('store3')
+        expect(store1).toBeInstanceOf(CacheWrapper)
+        expect(store2).toBeInstanceOf(CacheWrapper)
+        expect(store3).toBeInstanceOf(CacheWrapper)
+        await dropCacheInstance('store1')
+        await dropCacheInstance('store2')
+        await dropCacheInstance('store3')
+    })
+    it('throws ValueError for invalid storename', async () => {
+        await cacheFactory([{ storeName: 'store1' }])
+        try {
+            getCache('store1')
+        } catch (error) {
+            expect(error).toBeInstanceOf(ValueError)
+        }
+    })
+    it('throws ConfigError when no init has take place', () => {
+        try {
+            getCache('store1')
+        } catch (error) {
+            expect(error).toBeInstanceOf(ConfigError)
+        }
     })
 })

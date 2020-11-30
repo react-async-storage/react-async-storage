@@ -141,3 +141,14 @@ export async function cacheFactory(
     }
     return state['wrappers']
 }
+
+export function getCache(
+    storeName: string = DEFAULTS.STORE_NAME,
+): CacheWrapper {
+    if (!state.init) {
+        throw new ConfigError(`cache init not finished`)
+    } else if (!Reflect.has(state.wrappers, storeName)) {
+        throw new ValueError(`invalid storeName ${storeName}`)
+    }
+    return state.wrappers[storeName]
+}
