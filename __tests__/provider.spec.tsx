@@ -19,6 +19,7 @@ const NestedComponent = (props: {
 }): React.ReactElement => {
     let caches: CacheWrapper[] | undefined
     if (props.isLoaded) {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         caches = useCache(props.storeName ?? undefined)
         props.cb(caches)
     }

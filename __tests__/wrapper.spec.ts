@@ -4,7 +4,7 @@ import {
     CacheWrapper,
     createCacheInstance,
     dropCacheInstance,
-} from '../src/'
+} from '../src'
 import merge from 'lodash.merge'
 
 describe('CacheWrapper tests', () => {
@@ -125,7 +125,7 @@ describe('CacheWrapper tests', () => {
             await wrapper.setItem('testValue', testValue)
             await wrapper.updateRecord('testValue', null, callback)
             const record = await wrapper.getRecord('testValue')
-            expect(callback).toBeCalledWith(null, record)
+            expect(callback).toHaveBeenCalledWith(null, record)
         })
         it('passes error to callback when error is thrown and callback is provided', async () => {
             const callback = jest.fn()
@@ -133,7 +133,7 @@ describe('CacheWrapper tests', () => {
             wrapper.instance.setItem = async () =>
                 new Promise((_, reject) => reject())
             await wrapper.updateRecord('testValue', null, callback)
-            expect(callback).toBeCalled()
+            expect(callback).toHaveBeenCalled()
         })
         it('throws CacheError when no callback is provided and an error occurs', async () => {
             try {
@@ -189,14 +189,14 @@ describe('CacheWrapper tests', () => {
             const callback = jest.fn()
             await wrapper.setItem('testValue', testValue)
             await wrapper.getItem('testValue', undefined, callback)
-            expect(callback).toBeCalledWith(null, testValue)
+            expect(callback).toHaveBeenCalledWith(null, testValue)
         })
         it('passes error to callback when error is thrown and callback is provided', async () => {
             const callback = jest.fn()
             await wrapper.setItem('testValue', testValue)
             wrapper.getRecord = async () => new Promise((_, reject) => reject())
             await wrapper.getItem('testValue', undefined, callback)
-            expect(callback).toBeCalled()
+            expect(callback).toHaveBeenCalled()
         })
         it('throws when no callback is provided and an error occurs', async () => {
             try {
@@ -223,14 +223,14 @@ describe('CacheWrapper tests', () => {
             const callback = jest.fn()
             await wrapper.setItem('testValue', testValue, undefined, callback)
             const record = await wrapper.getRecord('testValue')
-            expect(callback).toBeCalledWith(null, record)
+            expect(callback).toHaveBeenCalledWith(null, record)
         })
         it('passes error to callback when error is thrown and callback is provided', async () => {
             const callback = jest.fn()
             wrapper.instance.setItem = async () =>
                 new Promise((_, reject) => reject())
             await wrapper.setItem('testValue', testValue, undefined, callback)
-            expect(callback).toBeCalled()
+            expect(callback).toHaveBeenCalled()
         })
         it('throws CacheError when no callback is provided and an error occurs', async () => {
             try {
@@ -384,7 +384,7 @@ describe('CacheWrapper tests', () => {
             ])
             await wrapper.instance.setItem('otherValue', 123)
             const keys = await wrapper.keys()
-            expect(keys.length).toEqual(3)
+            expect(keys).toHaveLength(3)
             expect(keys).toEqual(['testValue1', 'testValue2', 'otherValue'])
         })
     })

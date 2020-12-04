@@ -103,7 +103,7 @@ describe('createCacheInstance tests', () => {
                 { key: 'testValue3', value: null },
             ])
             let records = await wrapper.getRecords()
-            expect(records.length).toEqual(3)
+            expect(records).toHaveLength(3)
             expect(records.map((record) => record.toObject())).toEqual([
                 {
                     expiration: undefined,

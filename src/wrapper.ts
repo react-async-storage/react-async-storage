@@ -12,7 +12,7 @@ import merge from 'lodash.merge'
 
 export class CacheWrapper {
     readonly allowStale: boolean
-    readonly cache: Cache = new Map()
+    readonly cache = new Map() as Cache
     readonly instance: LocalForage
     readonly storeName: string
     readonly preferCache: boolean
@@ -182,6 +182,7 @@ export class CacheWrapper {
     async multiGet(keys: string[]): Promise<[string, any][]> {
         const promises = keys.map(
             async (key: string): Promise<[string, any]> => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 const cachedValue = await this.getItem(key)
                 return [key, cachedValue]
             },

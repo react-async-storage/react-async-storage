@@ -17,6 +17,7 @@ export class CacheRecord<T = any> {
         this.key = key
         this.version = version
         //@ts-expect-error - https://github.com/microsoft/TypeScript/issues/37663
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         this.value = typeof value === 'function' ? value() : value
         this.setExpiration(maxAge)
     }
@@ -69,8 +70,9 @@ export class CacheRecord<T = any> {
         }
         this.expiration = num * unitToMSMap[unit] + now()
     }
-    setValue(value: UpdateSetter<T> | T) {
+    setValue(value: UpdateSetter<T> | T): void {
         //@ts-expect-error - https://github.com/microsoft/TypeScript/issues/37663
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         this.value = typeof value === 'function' ? value(this.value) : value
     }
     static from<T>(cacheObject: CacheObject<T>): CacheRecord<T> {

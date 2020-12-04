@@ -79,7 +79,7 @@ describe('CacheRecord tests', () => {
         }
         it('throws when passed in value is NaN', () => {
             try {
-                record.setExpiration(NaN)
+                record.setExpiration(Number.NaN)
             } catch (error) {
                 expect(error).toBeInstanceOf(ValueError)
             }
