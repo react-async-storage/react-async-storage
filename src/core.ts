@@ -1,8 +1,8 @@
 import { CacheObject, CacheOptions } from './types'
 import { CacheRecord } from './record'
 import { CacheWrapper } from './wrapper'
-import { ConfigError, ValueError } from './errors'
 import { DEFAULTS } from './constants'
+import { ValueError } from './errors'
 import { driverWithDefaultSerialization } from '@aveq-research/localforage-asyncstorage-driver'
 import localforage from 'localforage'
 import semVer from 'compare-versions'
@@ -145,9 +145,7 @@ export async function cacheFactory(
 export function getCache(
     storeName: string = DEFAULTS.STORE_NAME,
 ): CacheWrapper {
-    if (!state.init) {
-        throw new ConfigError(`cache init not finished`)
-    } else if (!Reflect.has(state.wrappers, storeName)) {
+    if (!Reflect.has(state.wrappers, storeName)) {
         throw new ValueError(`invalid storeName ${storeName}`)
     }
     return state.wrappers[storeName]

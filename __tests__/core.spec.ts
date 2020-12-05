@@ -1,13 +1,13 @@
 import {
     CacheRecord,
     CacheWrapper,
+    DEFAULTS,
     ValueError,
     cacheFactory,
     createCacheInstance,
     dropCacheInstance,
     getCache,
 } from '../src'
-import { ConfigError } from '../src/errors'
 import localForage from 'localforage'
 
 describe('createCacheInstance tests', () => {
@@ -261,6 +261,22 @@ describe('createCacheInstance tests', () => {
     })
 })
 
+describe('dropCacheInstance tests', () => {
+    it('throws error on invalid storeName', async () => {
+        try {
+            await cacheFactory([
+                { storeName: 'store1' },
+                { storeName: 'store2' },
+                { storeName: 'store3' },
+            ])
+            await dropCacheInstance('xzy')
+        } catch (error) {
+            expect(error).toBeInstanceOf(ValueError)
+            expect(error.message).toBe('<R-Cache> invalid storeName xzy')
+        }
+    })
+})
+
 describe('getCache tests', () => {
     it('retrieves cacheRecords correctly', async () => {
         await cacheFactory([
@@ -278,19 +294,19 @@ describe('getCache tests', () => {
         await dropCacheInstance('store2')
         await dropCacheInstance('store3')
     })
+    it('retireves default cache namespace correctly', async () => {
+        await createCacheInstance()
+        const store = getCache()
+        expect(store).toBeInstanceOf(CacheWrapper)
+        expect(store.storeName).toBe(DEFAULTS.STORE_NAME)
+    })
     it('throws ValueError for invalid storename', async () => {
         await cacheFactory([{ storeName: 'store1' }])
         try {
-            getCache('store1')
+            getCache('xyz')
         } catch (error) {
             expect(error).toBeInstanceOf(ValueError)
-        }
-    })
-    it('throws ConfigError when no init has take place', () => {
-        try {
-            getCache('store1')
-        } catch (error) {
-            expect(error).toBeInstanceOf(ConfigError)
+            expect(error.message).toBe(`<R-Cache> invalid storeName xyz`)
         }
     })
 })

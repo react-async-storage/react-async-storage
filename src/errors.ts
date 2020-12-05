@@ -20,12 +20,3 @@ export class ValueError extends Error {
         Object.setPrototypeOf(this, ValueError.prototype)
     }
 }
-
-export class ConfigError extends Error {
-    /* istanbul ignore next */
-    constructor(msg: string) {
-        super(`<R-Cache> ${msg}`)
-        this.name = 'ConfigError'
-        Object.setPrototypeOf(this, ConfigError.prototype)
-    }
-}

@@ -5,6 +5,7 @@ import React, {
     PropsWithChildren,
     createContext,
     useEffect,
+    useRef,
     useState,
 } from 'react'
 
@@ -15,14 +16,21 @@ export function CacheProvider({
     options,
     children,
 }: PropsWithChildren<CacheProviderProps>): React.ReactElement {
+    const isMountedRef = useRef(true)
     const [isLoaded, setIsLoaded] = useState(false)
     const [wrappers, setWrappers] = useState<Record<string, CacheWrapper>>({})
     useEffect(() => {
-        ;(async () => {
-            const wrappers = await cacheFactory(options)
-            setWrappers(wrappers)
-            setIsLoaded(true)
-        })()
+        /* istanbul ignore next - its not worth the effort typing to test the branching here */
+        if (isMountedRef.current) {
+            ;(async () => {
+                const wrappers = await cacheFactory(options)
+                setWrappers(wrappers)
+                setIsLoaded(true)
+            })()
+        }
+        return () => {
+            isMountedRef.current = false
+        }
     }, [options])
 
     useEffect(() => {
