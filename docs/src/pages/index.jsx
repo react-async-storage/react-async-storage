@@ -3,57 +3,57 @@ import Link from '@docusaurus/Link'
 import React from 'react'
 import clsx from 'clsx'
 import styles from './styles.module.css'
-import useBaseUrl from '@docusaurus/useBaseUrl'
+import { Watch, Database, Code, UserCheck } from 'react-feather'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
+import useBaseUrl from '@docusaurus/useBaseUrl'
 
 const features = [
     {
         title: 'Easy to Use',
-        imageUrl: 'img/undraw_docusaurus_mountain.svg',
+        icon: UserCheck,
         description: (
             <>
-                Docusaurus was designed from the ground up to be easily
-                installed and used to get your website up and running quickly.
+                React Async Storage offers powerful functionalities while
+                extending the familiar and simple to use localStorage API.
             </>
         ),
     },
     {
-        title: 'Focus on What Matters',
-        imageUrl: 'img/undraw_docusaurus_tree.svg',
+        title: 'React and React Native',
+        icon: Code,
         description: (
             <>
-                Docusaurus lets you focus on your docs, and we&apos;ll do the
-                chores. Go ahead and move your docs into the <code>docs</code>{' '}
-                directory.
+                React Async Storage works in both the browser and React Native,
+                allowing you to share code across platforms more easily.
             </>
         ),
     },
     {
-        title: 'Powered by React',
-        imageUrl: 'img/undraw_docusaurus_react.svg',
+        title: 'Cache Invalidation',
+        icon: Watch,
         description: (
             <>
-                Extend or customize your website layout by reusing React.
-                Docusaurus can be extended while reusing the same header and
-                footer.
+                React Async Storage supports record expiration and storage
+                versioning.
+            </>
+        ),
+    },
+    {
+        title: 'Extends LocalForage',
+        icon: Database,
+        description: (
+            <>
+                React Async Storage is build on-top of localForage and it
+                includes all of its advanced functionalities.
             </>
         ),
     },
 ]
 
-function Feature({ imageUrl, title, description }) {
-    const imgUrl = useBaseUrl(imageUrl)
+function Feature({ icon: Icon, title, description }) {
     return (
-        <div className={clsx('col col--4', styles.feature)}>
-            {imgUrl && (
-                <div className="text--center">
-                    <img
-                        className={styles.featureImage}
-                        src={imgUrl}
-                        alt={title}
-                    />
-                </div>
-            )}
+        <div className={clsx('col col--3', styles.feature)}>
+            <Icon size={96} />
             <h3>{title}</h3>
             <p>{description}</p>
         </div>
@@ -86,17 +86,15 @@ function Home() {
                 </div>
             </header>
             <main>
-                {features && features.length > 0 && (
-                    <section className={styles.features}>
-                        <div className="container">
-                            <div className="row">
-                                {features.map((props, idx) => (
-                                    <Feature key={idx} {...props} />
-                                ))}
-                            </div>
+                <section className={styles.features}>
+                    <div className="container">
+                        <div className={clsx('row')}>
+                            {features.map((props, idx) => (
+                                <Feature key={idx} {...props} />
+                            ))}
                         </div>
-                    </section>
-                )}
+                    </div>
+                </section>
             </main>
         </Layout>
     )

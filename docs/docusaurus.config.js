@@ -1,5 +1,5 @@
-const title = 'React Async Cache'
-const githubLink = 'https://github.com/Goldziher/r-cache.git'
+const title = 'React Async Storage'
+const githubLink = 'https://github.com/react-async-storage/react-async-storage'
 module.exports = {
     title,
     tagline: 'Ergonomic Async Storage for React and React Native',
@@ -9,29 +9,14 @@ module.exports = {
     onBrokenMarkdownLinks: 'warn',
     favicon: 'img/favicon.ico',
     organizationName: title,
-    projectName: 'r-cache',
-    plugins: [
-        [
-            'docusaurus-plugin-typedoc',
-            {
-                inputFiles: ['../src/'],
-                mode: 'files',
-                excludeExternals: true,
-                excludePrivate: true,
-                excludeNotExported: true,
-                esModuleInterop: true,
-                jsx: 'react',
-                readme: 'none',
-                sidebar: {
-                    globalsLabel: 'Overview',
-                },
-                globalsTitle: 'Overview',
-            },
-        ],
-    ],
+    projectName: 'react-async-storage',
     themeConfig: {
         navbar: {
             title,
+            logo: {
+                alt: 'React Async Storage',
+                src: 'img/logo.png',
+            },
             items: [
                 {
                     to: 'docs/',
@@ -57,9 +42,6 @@ module.exports = {
             {
                 docs: {
                     sidebarPath: require.resolve('./sidebars.js'),
-                    // Please change this to your repo.
-                    editUrl:
-                        'https://github.com/facebook/docusaurus/edit/master/website/',
                 },
                 theme: {
                     customCss: require.resolve('./src/css/custom.css'),

@@ -1,8 +1,8 @@
 ![Pipeline](https://github.com/Goldziher/rn-async-storage-cache-wrapper/workflows/CI/badge.svg?branch=master) [![GitHub license](https://img.shields.io/github/license/Goldziher/r-cache?logo=MIT)](https://github.com/Goldziher/r-cache) [![codecov](https://codecov.io/gh/Goldziher/rn-async-storage-cache-wrapper/branch/master/graph/badge.svg?token=1L6MQ9Y6UG)](https://codecov.io/gh/Goldziher/rn-async-storage-cache-wrapper) [![Maintainability](https://api.codeclimate.com/v1/badges/8328d0b358088c24e231/maintainability)](https://codeclimate.com/github/Goldziher/r-cache/maintainability)
 
-# RCache: Production Ready Async Cache
+# React Async Storage
 
-This package offers a sophisticated but simple to use async storage implementation built on-top of localForage for React and React Native.
+This package offers a production ready async storage for React and React Native.
 
 It offers the following benefits:
 
