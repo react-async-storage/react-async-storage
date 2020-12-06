@@ -28,11 +28,13 @@
     "unpkg": "dist/umd/index.min.js",
     "types": "dist/types/index.d.ts",
     "scripts": {
-        "prepublishOnly": "yarn build",
-        "postpublish": "rimraf dist",
         "build": "rimraf dist && rollup -c rollup.config.js && prettier --write './dist/**/*.ts'",
         "check:script": "eslint --fix-dry-run '**/*.{ts,tsx,*.ts,*.tsx}'",
+        "contributors:add": "all-contributors add",
+        "contributors:generate": "all-contributors generate",
         "lint:script": "eslint --fix '**/*.{ts,tsx,*.ts,*.tsx}'",
+        "postpublish": "rimraf dist",
+        "prepublishOnly": "yarn build",
         "test": "jest --silent"
     },
     "husky": {
@@ -76,6 +78,7 @@
         "@testing-library/react-hooks": "^3.4.2",
         "@types/lodash.merge": "^4.6.6",
         "@types/react": "^17.0.0",
+        "all-contributors-cli": "^6.19.0",
         "eslint": "^7.15.0",
         "husky": "^4.3.4",
         "jest": "^26.6.3",

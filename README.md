@@ -27,7 +27,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/Goldziher"><img src="https://avatars1.githubusercontent.com/u/30733348?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Na'aman Hirschfeld</b></sub></a><br /><a href="https://github.com/React Async Storage/react-async-storage/commits?author=Goldziher" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Goldziher"><img src="https://avatars1.githubusercontent.com/u/30733348?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Na'aman Hirschfeld</b></sub></a><br /><a href="https://github.com/React Async Storage/react-async-storage/commits?author=Goldziher" title="Code">💻</a> <a href="#design-Goldziher" title="Design">🎨</a> <a href="https://github.com/React Async Storage/react-async-storage/commits?author=Goldziher" title="Documentation">📖</a> <a href="#ideas-Goldziher" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-Goldziher" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#platform-Goldziher" title="Packaging/porting to new platform">📦</a> <a href="https://github.com/React Async Storage/react-async-storage/commits?author=Goldziher" title="Tests">⚠️</a> <a href="#tool-Goldziher" title="Tools">🔧</a></td>
   </tr>
 </table>
 
