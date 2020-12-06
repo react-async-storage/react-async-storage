@@ -1,5 +1,5 @@
 ![Pipeline](https://github.com/Goldziher/rn-async-storage-cache-wrapper/workflows/CI/badge.svg?branch=master) [![GitHub license](https://img.shields.io/github/license/Goldziher/r-cache?logo=MIT)](https://github.com/Goldziher/r-cache) [![codecov](https://codecov.io/gh/Goldziher/rn-async-storage-cache-wrapper/branch/master/graph/badge.svg?token=1L6MQ9Y6UG)](https://codecov.io/gh/Goldziher/rn-async-storage-cache-wrapper) [![Maintainability](https://api.codeclimate.com/v1/badges/8328d0b358088c24e231/maintainability)](https://codeclimate.com/github/Goldziher/r-cache/maintainability)
-[![All Contributors](https://img.shields.io/badge/all_contributors-0-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-blue)](#contributors-)
 
 # React Async Storage
 
@@ -36,4 +36,4 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome! See the [contribution guidelines](CONTRIBUTING.md).
