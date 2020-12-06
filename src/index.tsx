@@ -5,7 +5,7 @@ export {
     getCache,
 } from './core'
 export { CacheError, ValueError } from './errors'
-export { CacheProvider, CacheContext } from './provider'
+export { StorageProvider, CacheContext } from './provider'
 export { CacheRecord } from './record'
 export { CacheWrapper } from './wrapper'
 export { DEFAULTS } from './constants'

@@ -1,3 +1,5 @@
+/* eslint-disable import/no-unresolved */
+/* eslint-disable react/prop-types */
 import Layout from '@theme/Layout'
 import Link from '@docusaurus/Link'
 import React from 'react'

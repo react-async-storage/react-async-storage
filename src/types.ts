@@ -16,7 +16,7 @@ export interface CacheWrapperOptions {
     preferCache: boolean
 }
 
-export interface CacheOptions extends Omit<LocalForageOptions, 'version'> {
+export interface StorageOptions extends Omit<LocalForageOptions, 'version'> {
     version?: string
     prune?: boolean
     allowStale?: boolean
@@ -36,7 +36,7 @@ export type MaxAge = number | [number, TimeUnit]
 export type NodeCallBack<T = any> = (error: Error | null, value?: T) => void
 export type Setter<T> = () => T
 export type UpdateSetter<T> = (value: T) => T
-export interface CacheProviderProps {
+export interface StorageProviderProps {
     onReady?: () => void
-    options?: CacheOptions | CacheOptions[]
+    options?: StorageOptions | StorageOptions[]
 }

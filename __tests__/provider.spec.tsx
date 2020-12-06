@@ -1,9 +1,9 @@
 import '@testing-library/jest-dom/extend-expect'
 import {
-    CacheOptions,
-    CacheProvider,
     CacheWrapper,
     DEFAULTS,
+    StorageOptions,
+    StorageProvider,
     ValueError,
     dropCacheInstance,
     useStorage,
@@ -39,14 +39,14 @@ const NestedComponent = (props: {
     )
 }
 const TestWrapper = (props: {
-    configs?: CacheOptions | CacheOptions[]
+    configs?: StorageOptions | StorageOptions[]
     cb: (wrappers: any) => void
     storeName?: string | string[]
     errorCb?: (error: any) => void
 }): React.ReactElement => {
     const [isLoaded, setIsLoaded] = useState(false)
     return (
-        <CacheProvider
+        <StorageProvider
             options={props.configs}
             onReady={() => setIsLoaded(true)}
         >
@@ -56,7 +56,7 @@ const TestWrapper = (props: {
                 storeName={props.storeName ?? undefined}
                 isLoaded={isLoaded}
             />
-        </CacheProvider>
+        </StorageProvider>
     )
 }
 

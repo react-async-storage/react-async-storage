@@ -1,4 +1,4 @@
-import { CacheObject, CacheOptions } from './types'
+import { CacheObject, StorageOptions } from './types'
 import { CacheRecord } from './record'
 import { CacheWrapper } from './wrapper'
 import { DEFAULTS } from './constants'
@@ -69,7 +69,7 @@ export async function createCacheInstance({
     allowStale = DEFAULTS.ALLOW_STALE,
     preferCache = DEFAULTS.PREFER_CACHE,
     ...rest
-}: CacheOptions = {}): Promise<CacheWrapper> {
+}: StorageOptions = {}): Promise<CacheWrapper> {
     state.namespace = !state.init && name ? name : state.namespace
     const config: LocalForageOptions = {
         name: state.namespace,
@@ -127,7 +127,7 @@ export async function dropCacheInstance(
 }
 
 export async function cacheFactory(
-    configs?: CacheOptions | CacheOptions[],
+    configs?: StorageOptions | StorageOptions[],
 ): Promise<typeof state.wrappers> {
     if (!configs) {
         await createCacheInstance()

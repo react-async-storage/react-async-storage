@@ -11,10 +11,14 @@ module.exports = {
     organizationName: title,
     projectName: 'react-async-storage',
     themeConfig: {
+        prism: {
+            theme: require('prism-react-renderer/themes/dracula'),
+            darkTheme: require('prism-react-renderer/themes/dracula'),
+        },
         navbar: {
             title,
             logo: {
-                alt: 'React Async Storage',
+                alt: 'React Async St<orage',
                 src: 'img/logo.png',
             },
             items: [

@@ -1,5 +1,5 @@
-import { CacheProviderProps } from './types'
 import { CacheWrapper } from './wrapper'
+import { StorageProviderProps } from './types'
 import { cacheFactory } from './core'
 import React, {
     PropsWithChildren,
@@ -11,11 +11,11 @@ import React, {
 
 export const CacheContext = createContext<Record<string, CacheWrapper>>({})
 
-export function CacheProvider({
+export function StorageProvider({
     onReady,
     options,
     children,
-}: PropsWithChildren<CacheProviderProps>): React.ReactElement {
+}: PropsWithChildren<StorageProviderProps>): React.ReactElement {
     const isMountedRef = useRef(true)
     const [isLoaded, setIsLoaded] = useState(false)
     const [wrappers, setWrappers] = useState<Record<string, CacheWrapper>>({})

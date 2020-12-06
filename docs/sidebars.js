@@ -1,5 +1,4 @@
 module.exports = {
-    someSidebar: {
-        Documentation: ['installation'],
-    },
+    'Getting Started': ['installation', 'usage', 'examples'],
+    'API Reference': [],
 }
