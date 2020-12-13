@@ -65,7 +65,7 @@
     },
     "homepage": "https://github.com/react-async-storage/react-async-storage#readme",
     "devDependencies": {
-        "@babel/core": "^7.12.9",
+        "@babel/core": "^7.12.10",
         "@babel/plugin-transform-runtime": "^7.12.1",
         "@jest/types": "^26.6.2",
         "@react-native-community/async-storage": "^1.12.1",
