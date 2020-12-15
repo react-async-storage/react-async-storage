@@ -71,7 +71,7 @@
         "@react-native-community/async-storage": "^1.12.1",
         "@rollup/plugin-babel": "^5.2.2",
         "@rollup/plugin-commonjs": "^17.0.0",
-        "@rollup/plugin-node-resolve": "^11.0.0",
+        "@rollup/plugin-node-resolve": "^11.0.1",
         "@sprylab/eslint-config": "^1.1.6",
         "@testing-library/jest-dom": "^5.11.6",
         "@testing-library/react": "^11.2.2",
