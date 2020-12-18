@@ -72,7 +72,7 @@
         "@rollup/plugin-babel": "^5.2.2",
         "@rollup/plugin-commonjs": "^17.0.0",
         "@rollup/plugin-node-resolve": "^11.0.1",
-        "@sprylab/eslint-config": "^1.1.6",
+        "@sprylab/eslint-config": "^1.1.8",
         "@testing-library/jest-dom": "^5.11.6",
         "@testing-library/react": "^11.2.2",
         "@testing-library/react-hooks": "^3.7.0",

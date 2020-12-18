@@ -18,7 +18,7 @@ module.exports = {
         navbar: {
             title,
             logo: {
-                alt: 'React Async St<orage',
+                alt: title,
                 src: 'img/logo.png',
             },
             items: [
@@ -37,7 +37,7 @@ module.exports = {
         },
         footer: {
             style: 'dark',
-            copyright: `Copyright © ${new Date().getFullYear()} Na'aman Hirschfeld. Built with Docusaurus.`,
+            copyright: `Copyright © ${new Date().getFullYear()} ${title}. Built with Docusaurus.`,
         },
     },
     presets: [
