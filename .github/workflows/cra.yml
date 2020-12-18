@@ -2,7 +2,7 @@ name: Module Import
 
 on:
     push:
-        branches: [master, test/CRAinstall]
+        branches: [master]
     pull_request:
         branches: [master]
 
