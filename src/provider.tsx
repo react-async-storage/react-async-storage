@@ -9,7 +9,7 @@ import React, {
     useState,
 } from 'react'
 
-export const CacheContext = createContext<Record<string, CacheWrapper>>({})
+export const StorageContext = createContext<Record<string, CacheWrapper>>({})
 
 export function StorageProvider({
     onReady,
@@ -40,8 +40,8 @@ export function StorageProvider({
     }, [isLoaded])
 
     return (
-        <CacheContext.Provider value={wrappers}>
+        <StorageContext.Provider value={wrappers}>
             {children}
-        </CacheContext.Provider>
+        </StorageContext.Provider>
     )
 }
