@@ -15,8 +15,9 @@ const features = [
         icon: UserCheck,
         description: (
             <>
-                React Async Storage offers powerful functionalities while
-                extending the familiar and simple to use localStorage API.
+                React Async Storage offers <em>powerful functionalities</em>{' '}
+                while extending the <em>familiar</em> and <em>simple to use</em>{' '}
+                localStorage API.
             </>
         ),
     },
@@ -25,8 +26,9 @@ const features = [
         icon: Code,
         description: (
             <>
-                React Async Storage works in both the browser and React Native,
-                allowing you to share code across platforms more easily.
+                React Async Storage works in both the <em>browser</em> and{' '}
+                <em>React Native</em>, allowing you even more easily
+                <em>to share code across platforms</em>.
             </>
         ),
     },
@@ -35,8 +37,8 @@ const features = [
         icon: Watch,
         description: (
             <>
-                React Async Storage supports record expiration and storage
-                versioning.
+                React Async Storage supports <em>record expiration</em>{' '}
+                <em>and storage versioning</em>.
             </>
         ),
     },
@@ -45,8 +47,8 @@ const features = [
         icon: Database,
         description: (
             <>
-                React Async Storage is build on-top of localForage and it
-                includes all of its advanced functionalities.
+                React Async Storage is built on top of <em>localForage</em> and
+                it includes all of its <em>advanced functionalities</em>.
             </>
         ),
     },

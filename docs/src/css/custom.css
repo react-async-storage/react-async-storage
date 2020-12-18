@@ -32,3 +32,20 @@ html[data-theme='dark'] {
 footer.footer.footer--dark {
     --ifm-footer-background-color: #292b2f;
 }
+
+svg {
+    display: block;
+    margin: 1em auto;
+}
+
+h3 {
+    text-align: center;
+}
+
+.features_src-pages- p {
+    font-style: italic;
+}
+.features_src-pages- p em {
+    font-style: normal;
+    font-weight: 401;
+}
