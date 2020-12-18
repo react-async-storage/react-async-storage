@@ -1,0 +1,53 @@
+name: Module Import
+
+on:
+    push:
+        branches: [master, test/CRAinstall]
+    pull_request:
+        branches: [master]
+
+jobs:
+    test_import:
+        runs-on: ubuntu-latest
+        env:
+            CRA: 'async-storage-tester'
+            RAS: 'react-async-storage'
+            WORKDIR: '/home/runner/work/react-async-storage/react-async-storage'
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-node@v2-beta
+              with:
+                  node-version: '15'
+                  check-latest: true
+
+            - name: ⚛️ Create React App
+              run: >-
+                  yarn create react-app ${{env.CRA}} --template typescript &&
+                  cd ${{env.CRA}} && yarn add @types/lodash.merge localforage
+
+            - name: ⛓ Copy Source
+              run: >-
+                  cd $WORKDIR &&
+                  mkdir -p $WORKDIR/${{env.CRA}}/node_modules/${{env.RAS}}/src &&
+                  cp index.d.ts ${{env.CRA}}/node_modules/${{env.RAS}}/index.d.ts &&
+                  cp tsconfig.json ${{env.CRA}}/node_modules/${{env.RAS}}/tsconfig.json &&
+                  cp rollup.config.js ${{env.CRA}}/node_modules/${{env.RAS}}/rollup.config.js &&
+                  cp package.json ${{env.CRA}}/node_modules/${{env.RAS}}/package.json &&
+                  cp .prettierrc ${{env.CRA}}/node_modules/${{env.RAS}}/.prettierrc &&
+                  cp yarn.lock ${{env.CRA}}/node_modules/${{env.RAS}}/yarn.lock &&
+                  cp -r src/* ${{env.CRA}}/node_modules/${{env.RAS}}/src
+
+            - name: 🏋🏼‍♀️ Build Node Module
+              run: >-
+                  cd $WORKDIR/${{env.CRA}}/node_modules/${{env.RAS}} &&
+                  yarn --pure-lockfile --ignore-scripts &&
+                  cd .. && cd ${{env.RAS}} &&
+                  yarn build
+
+            - name: 📥 Test Module Import
+              run: >-
+                  cd $WORKDIR &&
+                  rm -f ${{env.CRA}}/src/App.ts ${{env.CRA}}/src/App.tsx &&
+                  cp import-test.tsx ${{env.CRA}}/src/App.tsx &&
+                  cd ${{env.CRA}} &&
+                  yarn build

@@ -35,7 +35,8 @@
         "lint:script": "eslint --fix '**/*.{ts,tsx,*.ts,*.tsx}'",
         "postpublish": "rimraf dist",
         "prepublishOnly": "yarn build",
-        "test": "jest --silent"
+        "test": "jest --silent",
+        "test:install": "docker build ."
     },
     "husky": {
         "hooks": {
