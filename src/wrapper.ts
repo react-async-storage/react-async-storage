@@ -1,9 +1,9 @@
 import {
     Cache,
-    CacheWrapperOptions,
     MaxAge,
     NodeCallBack,
     Setter,
+    StorageWrapperOptions,
     UpdateSetter,
 } from './types'
 import { CacheError } from './errors'
@@ -18,7 +18,7 @@ export class CacheWrapper {
     readonly preferCache: boolean
     readonly version: string
 
-    constructor(options: CacheWrapperOptions) {
+    constructor(options: StorageWrapperOptions) {
         this.allowStale = options.allowStale
         this.cache = options.cache
         this.instance = options.instance

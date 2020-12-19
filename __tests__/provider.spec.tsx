@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import '@testing-library/jest-dom/extend-expect'
 import {
     CacheWrapper,
@@ -22,8 +23,11 @@ const NestedComponent = (props: {
     let caches: CacheWrapper[] | undefined
     if (props.isLoaded) {
         try {
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            caches = useStorage(props.storeName ?? undefined)
+            caches = props.storeName
+                ? Array.isArray(props.storeName)
+                    ? props.storeName.map((name) => useStorage(name))
+                    : [useStorage(props.storeName)]
+                : [useStorage()]
             props.cb(caches)
         } catch (error) {
             if (props.errorCb) props.errorCb(error)

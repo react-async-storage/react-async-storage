@@ -7,7 +7,7 @@ export interface CacheObject<T = any> {
     value: T
     version: string
 }
-export interface CacheWrapperOptions {
+export interface StorageWrapperOptions {
     instance: LocalForage
     storeName: string
     version: string

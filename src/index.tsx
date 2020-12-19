@@ -5,9 +5,8 @@ export {
     getStorage,
 } from './core'
 export { CacheError, ValueError } from './errors'
-export { StorageProvider, StorageContext } from './provider'
+export { StorageProvider, StorageContext, useStorage } from './react'
 export { CacheRecord } from './record'
 export { CacheWrapper } from './wrapper'
 export { DEFAULTS } from './constants'
-export { useStorage } from './hooks'
 export * from './types'

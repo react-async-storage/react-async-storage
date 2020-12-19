@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prefer-date-now */
 import { CacheObject, MaxAge, Setter, UpdateSetter } from './types'
 import { ValueError } from './errors'
 

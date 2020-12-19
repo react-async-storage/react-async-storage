@@ -1,9 +1,12 @@
 import { CacheWrapper } from './wrapper'
+import { DEFAULTS } from './constants'
 import { StorageProviderProps } from './types'
+import { ValueError } from './errors'
 import { cacheFactory } from './core'
 import React, {
     PropsWithChildren,
     createContext,
+    useContext,
     useEffect,
     useRef,
     useState,
@@ -44,4 +47,14 @@ export function StorageProvider({
             {children}
         </StorageContext.Provider>
     )
+}
+
+export function useStorage(
+    storeName: string = DEFAULTS.STORE_NAME,
+): CacheWrapper {
+    const context = useContext(StorageContext)
+    if (!Reflect.has(context, storeName)) {
+        throw new ValueError(`invalid storeName ${storeName}`)
+    }
+    return context[storeName]
 }

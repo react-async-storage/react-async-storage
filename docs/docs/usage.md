@@ -89,11 +89,10 @@ import React, { useState, useEffect } from 'react'
 export default function MyComponent() {
   const [myCachedValue, setMyCachedValue] = useState<MyInterface | null>(null)
   /*
-    useStorage receives an optional string or an array of strings as a parameter - each representing a "storeName".
-
-    If no parameter is provided it will try to return the default store name.
+    useStorage receives an optional string as a parameter - each representing a "storeName".
+    If no parameter is provided it will return the default store name.
   */
-  const [mainStore] = useStorage("mainStore")
+  const mainStore = useStorage("mainStore")
 
   useEffect(() => {
     /*
@@ -125,11 +124,10 @@ class MyComponent extends Component {
 
   async fetchUser(): Promise<User> {
     /*
-    context.get receives an optional string or an array of strings as a parameter - each representing a "storeName".
-
+    The StorageContext is a map of storeNames -> stores. It can be interacted with like a regular object.
     If no parameter is provided it will try to return the default store name.
     */
-    const mainStore = this.context.get("mainStore")
+    const { mainStore } = this.context
 
     if (mainStore.hasItem("someKey")) {
       return await mainStore.getItem<User>("someKey")
@@ -157,7 +155,6 @@ export function getUser(): TypedThunkResult {
     return async (dispatch: TypedThunkDispatch) => {
         /*
         getStorage receives an optional string as a parameter.
-
         If no parameter is provided it will try to return the default store name.
         */
         const mainStore = getStorage('mainStore')
