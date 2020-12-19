@@ -142,7 +142,7 @@ export async function cacheFactory(
     return state['wrappers']
 }
 
-export function getCache(
+export function getStorage(
     storeName: string = DEFAULTS.STORE_NAME,
 ): CacheWrapper {
     if (!Reflect.has(state.wrappers, storeName)) {

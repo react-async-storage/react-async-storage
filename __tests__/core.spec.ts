@@ -6,7 +6,7 @@ import {
     cacheFactory,
     createCacheInstance,
     dropCacheInstance,
-    getCache,
+    getStorage,
 } from '../src'
 import localForage from 'localforage'
 
@@ -277,16 +277,16 @@ describe('dropCacheInstance tests', () => {
     })
 })
 
-describe('getCache tests', () => {
+describe('getStorage tests', () => {
     it('retrieves cacheRecords correctly', async () => {
         await cacheFactory([
             { storeName: 'store1' },
             { storeName: 'store2' },
             { storeName: 'store3' },
         ])
-        const store1 = getCache('store1')
-        const store2 = getCache('store2')
-        const store3 = getCache('store3')
+        const store1 = getStorage('store1')
+        const store2 = getStorage('store2')
+        const store3 = getStorage('store3')
         expect(store1).toBeInstanceOf(CacheWrapper)
         expect(store2).toBeInstanceOf(CacheWrapper)
         expect(store3).toBeInstanceOf(CacheWrapper)
@@ -296,14 +296,14 @@ describe('getCache tests', () => {
     })
     it('retireves default cache namespace correctly', async () => {
         await createCacheInstance()
-        const store = getCache()
+        const store = getStorage()
         expect(store).toBeInstanceOf(CacheWrapper)
         expect(store.storeName).toBe(DEFAULTS.STORE_NAME)
     })
     it('throws ValueError for invalid storename', async () => {
         await cacheFactory([{ storeName: 'store1' }])
         try {
-            getCache('xyz')
+            getStorage('xyz')
         } catch (error) {
             expect(error).toBeInstanceOf(ValueError)
             expect(error.message).toBe(`<R-Cache> invalid storeName xyz`)

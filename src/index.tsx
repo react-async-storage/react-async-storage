@@ -2,7 +2,7 @@ export {
     cacheFactory,
     createCacheInstance,
     dropCacheInstance,
-    getCache,
+    getStorage,
 } from './core'
 export { CacheError, ValueError } from './errors'
 export { StorageProvider, StorageContext } from './provider'

@@ -70,7 +70,6 @@ export default function App() {
     <StorageProvider options={storageConfigs}>{/* Rest of your app code */}</StorageProvider>
   )
 }
-
 ```
 
 > Note: this is completely optional - if you do not pass configs, the library's DEFAULTS **(INSERT LINK)** will be used.
@@ -92,7 +91,7 @@ export default function MyComponent() {
   /*
     useStorage receives an optional string or an array of strings as a parameter - each representing a "storeName".
 
-    If no parameter is provided it will try to return the default store name, so make sure to specify the storeName if you renamed the default store.
+    If no parameter is provided it will try to return the default store name.
   */
   const [mainStore] = useStorage("mainStore")
 
@@ -108,18 +107,17 @@ export default function MyComponent() {
   }, [])
   ...
 }
-
 ```
 
 #### 2. using the StorageContext
 
-If you are using class based components, you can use the StorageContext in you component directly:
+If you are using class based components, you can use the StorageContext directly in your component, for example using the contextType property:
 
 ```tsx
 import { StorageContext } from "react-async-storage"
-import React, { Component } from 'react'
-import ApiClient from "../api"
 import { User } from "../types"
+import ApiClient from "../api"
+import React, { Component } from 'react'
 
 
 class MyComponent extends Component {
@@ -129,22 +127,51 @@ class MyComponent extends Component {
     /*
     context.get receives an optional string or an array of strings as a parameter - each representing a "storeName".
 
-    If no parameter is provided it will try to return the default store name, so make sure to specify the storeName if you renamed the default store.
+    If no parameter is provided it will try to return the default store name.
     */
-    const store = this.context.get("mainStore")
+    const mainStore = this.context.get("mainStore")
 
-    if (store.has("someKey")) {
-      return await store.getItem<User>("someKey")
+    if (mainStore.hasItem("someKey")) {
+      return await mainStore.getItem<User>("someKey")
     } else {
       const user = await ApiClient.get<User>("/user")
-      await store.setItem("someKey", user)
+      await mainStore.setItem("someKey", user)
       return user
     }
 
     ...
   }
 }
-
 ```
 
-### 3. using the getCache helper
+#### 3. using the getStorage helper
+
+The previous two options work nicely for react components, but what if you want to use a store outside of a react component? For this purpose you can use the `getStorage` helper. For example, this is a how it can be used inside a `Redux Thunk` async action:
+
+```ts
+import { getStorage } from 'react-async-storage'
+import { TypedThunkResult, TypedThunkDispatch, User } from '../types'
+import ApiClient from '../api'
+
+export function getUser(): TypedThunkResult {
+    return async (dispatch: TypedThunkDispatch) => {
+        /*
+        getStorage receives an optional string as a parameter.
+
+        If no parameter is provided it will try to return the default store name.
+        */
+        const mainStore = getStorage('mainStore')
+
+        const user = mainStore.hasItem('someKey')
+            ? await mainStore.getItem<User>('someKey')
+            : await ApiClient.get<User>('/user')
+
+        dispatch({
+            type: SET_USER,
+            payload: user,
+        })
+    }
+}
+```
+
+**IMPORTANT** when using `getStorage`, care must be given to use it only in code that is called after the `StorageProvider` has been initialized. The simplest way to ensure this, is to wrap every place where `getStorage` is called inside the `StorageProvider`.
