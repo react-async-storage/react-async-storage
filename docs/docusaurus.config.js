@@ -3,7 +3,7 @@ const githubLink = 'https://github.com/react-async-storage/react-async-storage'
 module.exports = {
     title,
     tagline: 'Ergonomic Async Storage for React and React Native',
-    url: 'https://your-docusaurus-test-site.com',
+    url: 'https://react-async-storage.github.io/react-async-storage/',
     baseUrl: '/',
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
