@@ -1,15 +1,16 @@
 const title = 'React Async Storage'
+const organizationName = 'react-async-storage'
 const githubLink = 'https://github.com/react-async-storage/react-async-storage'
 module.exports = {
     title,
+    organizationName,
+    projectName: `${organizationName}.github.io`,
+    url: `https://${organizationName}.github.io`,
+    baseUrl: `/${organizationName}/`,
     tagline: 'Ergonomic Async Storage for React and React Native',
-    url: 'https://react-async-storage.github.io/react-async-storage/',
-    baseUrl: '/',
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
     favicon: 'img/favicon.ico',
-    organizationName: title,
-    projectName: 'react-async-storage',
     themeConfig: {
         prism: {
             theme: require('prism-react-renderer/themes/dracula'),
