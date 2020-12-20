@@ -15,11 +15,12 @@ It offers the following benefits:
 -   extended and streamlined api
 -   support of record expiration
 -   support of cache versioning
+-   build in serialization and deserialization
 -   distinct errors that can be tested with "instanceof"
 -   support for react hooks
 -   easy integration with 3rd party libraries such as react-redux
 
-[INSERT LINK TO DOCUMENTATION](https://github.github.com/gfm/)
+For more details see our [DOCUMENTATION](https://react-async-storage.github.io/)
 
 ## Contributors ✨
 
