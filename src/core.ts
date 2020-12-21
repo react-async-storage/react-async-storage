@@ -63,14 +63,14 @@ const retrieveAndPruneRecords = async (
 }
 
 export async function createCacheInstance({
-    name,
+    namespace,
     version = DEFAULTS.VERSION,
     storeName = DEFAULTS.STORE_NAME,
     allowStale = DEFAULTS.ALLOW_STALE,
     preferCache = DEFAULTS.PREFER_CACHE,
     ...rest
 }: StorageOptions = {}): Promise<CacheWrapper> {
-    state.namespace = !state.init && name ? name : state.namespace
+    state.namespace = !state.init && namespace ? namespace : state.namespace
     const config: LocalForageOptions = {
         name: state.namespace,
         ...rest,

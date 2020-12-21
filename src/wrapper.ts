@@ -103,7 +103,6 @@ export class CacheWrapper {
         }: {
             fallback?: T | null
             allowNull?: boolean
-            preferCache?: boolean
         } = {},
         callback?: NodeCallBack<T | null>,
     ): Promise<T | null> {
@@ -203,6 +202,22 @@ export class CacheWrapper {
             },
         )
         await Promise.all(promises)
+    }
+
+    async multiMerge(
+        values: {
+            key: string
+            value: any
+        }[],
+    ): Promise<[string, any][]> {
+        const promises = values.map(
+            async ({ key, value }): Promise<[string, any]> => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                const merged = await this.mergeItem(key, value)
+                return [key, merged]
+            },
+        )
+        return await Promise.all(promises)
     }
 
     async multiRemove(keys: string[]): Promise<void> {

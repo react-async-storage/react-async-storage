@@ -16,9 +16,10 @@ export interface StorageWrapperOptions {
     preferCache: boolean
 }
 
-export interface StorageOptions extends Omit<LocalForageOptions, 'version'> {
+export interface StorageOptions
+    extends Omit<Omit<LocalForageOptions, 'version'>, 'name'> {
+    namespace?: string
     version?: string
-    prune?: boolean
     allowStale?: boolean
     preferCache?: boolean
 }

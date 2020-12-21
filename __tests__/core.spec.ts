@@ -26,11 +26,11 @@ describe('createCacheInstance tests', () => {
     it('sets default name correcty', async () => {
         wrapper = await createCacheInstance()
         //@ts-ignore
-        expect(wrapper.instance._config.name).toEqual('RStorage')
+        expect(wrapper.instance._config.name).toEqual('ReactAsyncStorage')
     })
     it('sets default storeName correcty', async () => {
         wrapper = await createCacheInstance()
-        expect(wrapper.storeName).toEqual('defaultStorage')
+        expect(wrapper.storeName).toEqual('defaultStore')
     })
     it('sets custom storeName correcty', async () => {
         dropInstanceAfterTest = false
@@ -146,8 +146,8 @@ describe('createCacheInstance tests', () => {
             const record1 = new CacheRecord('currentRecord', '1.0.0', 1)
             const record2 = new CacheRecord('oldRecord', '0.0.5', 2)
             let instance = localForage.createInstance({
-                name: 'RStorage',
-                storeName: 'defaultStorage',
+                name: 'ReactAsyncStorage',
+                storeName: 'defaultStore',
             })
             await instance.setItem('currentRecord', record1.toObject())
             await instance.setItem('oldRecord', record2.toObject())

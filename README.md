@@ -20,7 +20,9 @@ It offers the following benefits:
 -   support for react hooks
 -   easy integration with 3rd party libraries such as react-redux
 
-For more details see our [DOCUMENTATION](https://react-async-storage.github.io/)
+## Getting Started 💻
+
+Head over to our [DOCUMENTATION](https://react-async-storage.github.io/)
 
 ## Contributors ✨
 
