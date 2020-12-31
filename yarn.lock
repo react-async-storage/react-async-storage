@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@aveq-research/localforage-asyncstorage-driver@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@aveq-research/localforage-asyncstorage-driver/-/localforage-asyncstorage-driver-2.0.0.tgz#af99290e251c87e89a145cff73748c0470cc3e2f"
-  integrity sha512-+bvctGk66rPBVP+JSLWYSGh3TmmpWaIwyBO8gRYBvHymihBy7OvhEdYfNBwpW/UYWkkrtXsANv3Wd7FNqARiDQ==
+"@aveq-research/localforage-asyncstorage-driver@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@aveq-research/localforage-asyncstorage-driver/-/localforage-asyncstorage-driver-3.0.1.tgz#ed6d24dea48678affc9de2ae14c9e215b7e22eff"
+  integrity sha512-e2KbwjU9eLjRB323In1mp4FbHHyar1xT8wvq5x0HLL7//QOb5wMm3ruCVSebUNSz86NKgchOn2ksGDBZGeyALw==
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.10.4":
   version "7.10.4"
