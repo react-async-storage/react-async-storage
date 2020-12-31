@@ -6,7 +6,7 @@ import {
     StorageProvider,
     StorageWrapper,
     ValueError,
-    dropCacheInstance,
+    dropCacheStorage,
     useStorage,
 } from '../src'
 import { act, render } from '@testing-library/react'
@@ -79,7 +79,7 @@ describe('Provider tests', () => {
                 expect(wrapper).toBeInstanceOf(StorageWrapper)
             }
             expect(getByTestId(TEST_ID)).toHaveTextContent(DEFAULTS.STORE_NAME)
-            await dropCacheInstance()
+            await dropCacheStorage()
         })
         it('throws error on invalid storeName', async () => {
             let error: any
@@ -116,7 +116,7 @@ describe('Provider tests', () => {
             expect(wrapper).toBeInstanceOf(StorageWrapper)
         }
         expect(getByTestId(TEST_ID)).toHaveTextContent(customName)
-        await dropCacheInstance(customName)
+        await dropCacheStorage(customName)
     })
     it('creates multiple custom instances correctly', async () => {
         let wrappers: StorageWrapper[]
@@ -142,6 +142,6 @@ describe('Provider tests', () => {
         expect(getByTestId(TEST_ID)).toHaveTextContent(
             [customName, 'customName2', 'customName3'].join(','),
         )
-        await dropCacheInstance(customName)
+        await dropCacheStorage(customName)
     })
 })

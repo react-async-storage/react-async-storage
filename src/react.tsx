@@ -2,7 +2,7 @@ import { DEFAULTS } from './constants'
 import { StorageProviderProps } from './types'
 import { StorageWrapper } from './wrapper'
 import { ValueError } from './errors'
-import { cacheFactory } from './core'
+import { storageFactory } from './core'
 import React, {
     PropsWithChildren,
     createContext,
@@ -26,7 +26,7 @@ export function StorageProvider({
         /* istanbul ignore next - its not worth the effort typing to test the branching here */
         if (isMountedRef.current) {
             ;(async () => {
-                const wrappers = await cacheFactory(options)
+                const wrappers = await storageFactory(options)
                 setWrappers(wrappers)
                 setIsLoaded(true)
             })()

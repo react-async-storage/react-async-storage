@@ -62,7 +62,7 @@ const retrieveAndPruneRecords = async (
     return records.filter((record) => !invalidRecordKeys.includes(record.key))
 }
 
-export async function createCacheInstance({
+export async function createCacheStorage({
     namespace,
     version = DEFAULTS.VERSION,
     storeName = DEFAULTS.STORE_NAME,
@@ -115,7 +115,7 @@ export async function createCacheInstance({
     return state.wrappers[storeName]
 }
 
-export async function dropCacheInstance(
+export async function dropCacheStorage(
     storeName = DEFAULTS.STORE_NAME,
 ): Promise<void> {
     if (!Reflect.has(state.wrappers, storeName)) {
@@ -126,15 +126,15 @@ export async function dropCacheInstance(
     delete state.wrappers[storeName]
 }
 
-export async function cacheFactory(
+export async function storageFactory(
     configs?: StorageOptions | StorageOptions[],
 ): Promise<typeof state.wrappers> {
     if (!configs) {
-        await createCacheInstance()
+        await createCacheStorage()
     } else {
         const promises = (Array.isArray(configs) ? configs : [configs]).map(
             async (options) => {
-                await createCacheInstance(options)
+                await createCacheStorage(options)
             },
         )
         await Promise.all(promises)

@@ -1,19 +1,19 @@
 import {
-    CacheError,
+    StorageError,
     StorageRecord,
     StorageWrapper,
-    createCacheInstance,
-    dropCacheInstance,
+    createCacheStorage,
+    dropCacheStorage,
 } from '../src'
 import merge from 'lodash.merge'
 
 describe('StorageWrapper tests', () => {
     let wrapper: StorageWrapper
     beforeEach(async () => {
-        wrapper = await createCacheInstance()
+        wrapper = await createCacheStorage()
     })
     afterEach(async () => {
-        await dropCacheInstance()
+        await dropCacheStorage()
         //@ts-ignore
         wrapper = null
     })
@@ -52,7 +52,7 @@ describe('StorageWrapper tests', () => {
             try {
                 await wrapper.getRecord('testValue', { allowNull: false })
             } catch (error) {
-                expect(error).toBeInstanceOf(CacheError)
+                expect(error).toBeInstanceOf(StorageError)
                 expect(error.message).toBe(
                     `<R-Cache> null value returned for key testValue`,
                 )
@@ -73,7 +73,7 @@ describe('StorageWrapper tests', () => {
                 await wrapper.instance.setItem('testValue', record.toObject())
                 await wrapper.getRecord('testValue', { allowNull: false })
             } catch (error) {
-                expect(error).toBeInstanceOf(CacheError)
+                expect(error).toBeInstanceOf(StorageError)
                 expect(error.message).toBe(
                     `<R-Cache> stale value return for key testValue: to resolve this error allowNull when calling getRecord`,
                 )
@@ -135,14 +135,14 @@ describe('StorageWrapper tests', () => {
             await wrapper.updateRecord('testValue', null, callback)
             expect(callback).toHaveBeenCalled()
         })
-        it('throws CacheError when no callback is provided and an error occurs', async () => {
+        it('throws StorageError when no callback is provided and an error occurs', async () => {
             try {
                 await wrapper.setItem('testValue', testValue)
                 wrapper.instance.setItem = async () =>
                     new Promise((_, reject) => reject())
                 await wrapper.updateRecord('testValue', { value: '123' })
             } catch (error) {
-                expect(error).toBeInstanceOf(CacheError)
+                expect(error).toBeInstanceOf(StorageError)
                 expect(error.message).toBe(
                     '<R-Cache> error writing key testValue',
                 )
@@ -202,7 +202,7 @@ describe('StorageWrapper tests', () => {
             try {
                 await wrapper.getItem('testValue', { allowNull: false })
             } catch (error) {
-                expect(error).toBeInstanceOf(CacheError)
+                expect(error).toBeInstanceOf(StorageError)
             }
         })
     })
@@ -232,13 +232,13 @@ describe('StorageWrapper tests', () => {
             await wrapper.setItem('testValue', testValue, undefined, callback)
             expect(callback).toHaveBeenCalled()
         })
-        it('throws CacheError when no callback is provided and an error occurs', async () => {
+        it('throws StorageError when no callback is provided and an error occurs', async () => {
             try {
                 wrapper.instance.setItem = async () =>
                     new Promise((_, reject) => reject())
                 await wrapper.setItem('testValue', testValue)
             } catch (error) {
-                expect(error).toBeInstanceOf(CacheError)
+                expect(error).toBeInstanceOf(StorageError)
                 expect(error.message).toBe(
                     '<R-Cache> error writing key testValue',
                 )
@@ -285,14 +285,14 @@ describe('StorageWrapper tests', () => {
             await wrapper.mergeItem('testValue', value2, callback)
             expect(callback).toHaveBeenCalled()
         })
-        it('throws CacheError when no callback is provided', async () => {
+        it('throws StorageError when no callback is provided', async () => {
             await wrapper.setItem('testValue', value1)
             wrapper.instance.setItem = async () =>
                 new Promise((_, reject) => reject())
             try {
                 await wrapper.mergeItem('testValue', value2)
             } catch (error) {
-                expect(error).toBeInstanceOf(CacheError)
+                expect(error).toBeInstanceOf(StorageError)
                 expect(error.message).toBe(
                     '<R-Cache> error merging values for key testValue',
                 )
@@ -329,6 +329,24 @@ describe('StorageWrapper tests', () => {
             ).toEqual([
                 ['testValue1', 1],
                 ['testValue2', null],
+            ])
+        })
+    })
+    describe('multiMerge', () => {
+        it('merges multiple values correctly', async () => {
+            await wrapper.multiSet([
+                { key: 'testValue1', value: { color: 'white' } },
+                { key: 'testValue2', value: { color: 'black' } },
+            ])
+
+            expect(
+                await wrapper.multiMerge([
+                    { key: 'testValue1', value: { height: 10 } },
+                    { key: 'testValue2', value: { height: 20 } },
+                ]),
+            ).toEqual([
+                ['testValue1', { color: 'white', height: 10 }],
+                ['testValue2', { color: 'black', height: 20 }],
             ])
         })
     })
@@ -429,7 +447,7 @@ describe('StorageWrapper tests', () => {
             await wrapper.getRecords(true, callback)
             expect(callback).toHaveBeenCalled()
         })
-        it('throws CacheError when no callback is provided', async () => {
+        it('throws StorageError when no callback is provided', async () => {
             await wrapper.multiSet([
                 { key: 'testValue1', value: 1 },
                 { key: 'testValue2', value: 2, maxAge: 150 },

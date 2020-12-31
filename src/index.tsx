@@ -1,10 +1,10 @@
 export {
-    cacheFactory,
-    createCacheInstance,
-    dropCacheInstance,
+    storageFactory,
+    createCacheStorage,
+    dropCacheStorage,
     getStorage,
 } from './core'
-export { CacheError, ValueError } from './errors'
+export { StorageError, ValueError } from './errors'
 export { StorageProvider, StorageContext, useStorage } from './react'
 export { StorageRecord } from './record'
 export { StorageWrapper } from './wrapper'

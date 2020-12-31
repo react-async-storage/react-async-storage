@@ -1,5 +1,5 @@
 import { Cache, MaxAge, NodeCallBack, Setter, UpdateSetter } from './types'
-import { CacheError } from './errors'
+import { StorageError } from './errors'
 import { StorageRecord } from './record'
 import merge from 'lodash.merge'
 
@@ -43,7 +43,7 @@ export class StorageWrapper {
             : await this.instance.getItem(key)) as StorageRecord<T> | null
         if (record === null) {
             if (!allowNull) {
-                throw new CacheError(`null value returned for key ${key}`)
+                throw new StorageError(`null value returned for key ${key}`)
             }
             return null
         }
@@ -54,7 +54,7 @@ export class StorageWrapper {
         if (record.isStale()) {
             await this.removeItem(key)
             if (!allowNull) {
-                throw new CacheError(
+                throw new StorageError(
                     `stale value return for key ${key}: to resolve this error allowNull when calling getRecord`,
                 )
             }
@@ -90,7 +90,7 @@ export class StorageWrapper {
             }
         } catch (error) {
             if (!callback) {
-                throw new CacheError(`error writing key ${key}`)
+                throw new StorageError(`error writing key ${key}`)
             }
             callback(error)
         }
@@ -151,7 +151,7 @@ export class StorageWrapper {
             if (callback) {
                 callback(error)
             } else {
-                throw new CacheError(`error writing key ${key}`)
+                throw new StorageError(`error writing key ${key}`)
             }
         }
     }
@@ -179,7 +179,7 @@ export class StorageWrapper {
             return mergedValue
         } catch (error) {
             if (!callback) {
-                throw new CacheError(`error merging values for key ${key}`)
+                throw new StorageError(`error merging values for key ${key}`)
             }
             callback(error)
         }
