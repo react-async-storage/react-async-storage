@@ -6,7 +6,11 @@ import typescript from 'rollup-plugin-typescript2'
 
 const output = (type) => ({
     input: 'src/index.tsx',
-    external: ['localforage', 'react', '@react-native-community/async-storage'],
+    external: [
+        'localforage',
+        'react',
+        '@react-native-async-storage/async-storage',
+    ],
     plugins: [
         nodeResolve(),
         commonjs(),
@@ -28,7 +32,7 @@ const output = (type) => ({
         globals: {
             'localforage': 'localforage',
             'react': 'React',
-            '@react-native-community/async-storage': 'AsyncStorage',
+            '@react-native-async-storage/async-storage': 'AsyncStorage',
         },
     },
 })

@@ -9,6 +9,10 @@ import {
     storageFactory,
 } from '../src'
 import localForage from 'localforage'
+//@ts-ignore
+import mockAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock'
+
+jest.mock('@react-native-async-storage/async-storage', () => mockAsyncStorage)
 
 describe('createCacheStorage tests', () => {
     let wrapper: StorageWrapper
@@ -84,12 +88,10 @@ describe('createCacheStorage tests', () => {
             productGetter.mockReturnValue('ReactNative')
             wrapper = await createCacheStorage()
             //@ts-ignore
-            expect(localForage._driver).toBe(
-                'rnAsyncStorageWrapper-withDefaultSerializer',
-            )
+            expect(localForage._driver).toBe('RNAsyncStorageLocalForageDriver')
             //@ts-ignore
             expect(wrapper.instance._driver).toBe(
-                'rnAsyncStorageWrapper-withDefaultSerializer',
+                'RNAsyncStorageLocalForageDriver',
             )
         })
     })

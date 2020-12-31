@@ -3,7 +3,7 @@ import { StorageObject, StorageOptions } from './types'
 import { StorageRecord } from './record'
 import { StorageWrapper } from './wrapper'
 import { ValueError } from './errors'
-import { driverWithDefaultSerialization } from '@aveq-research/localforage-asyncstorage-driver'
+import createRNAsyncStorageDriver from './driver'
 import localforage from 'localforage'
 import semVer from 'compare-versions'
 
@@ -81,7 +81,7 @@ export async function createCacheStorage({
         state.init = true
     }
     if (navigator.product === 'ReactNative') {
-        const AsyncStorageDriver = driverWithDefaultSerialization()
+        const AsyncStorageDriver = await createRNAsyncStorageDriver()
         config.driver = AsyncStorageDriver._driver
         if (!state.rnDriverDefined) {
             await localforage.defineDriver(AsyncStorageDriver)
@@ -89,7 +89,6 @@ export async function createCacheStorage({
             state.rnDriverDefined = true
         }
     }
-
     if (!state.wrappers[storeName]) {
         const instance = localforage.createInstance({
             storeName,

@@ -1,5 +1,4 @@
 module.exports = {
-    setupFiles: ['<rootDir>/jest.setup.ts'],
     collectCoverageFrom: ['src/**/*.*'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'json', 'node'],
     transform: {
