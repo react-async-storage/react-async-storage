@@ -107,8 +107,6 @@
     "dependencies": {
         "@aveq-research/localforage-asyncstorage-driver": "^3.0.1",
         "compare-versions": "^3.6.0",
-        "lodash.merge": "^4.6.2",
-        "@react-native-async-storage/async-storage": "*",
-        "react-native": "*"
+        "lodash.merge": "^4.6.2"
     }
 }
