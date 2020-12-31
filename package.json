@@ -68,7 +68,7 @@
         "@babel/core": "^7.12.10",
         "@babel/plugin-transform-runtime": "^7.12.10",
         "@jest/types": "^26.6.2",
-        "@react-native-community/async-storage": "^1.12.1",
+        "@react-native-async-storage/async-storage": "^1.13.2",
         "@rollup/plugin-babel": "^5.2.2",
         "@rollup/plugin-commonjs": "^17.0.0",
         "@rollup/plugin-node-resolve": "^11.0.1",
@@ -101,7 +101,7 @@
         "react": "*"
     },
     "optionalDependencies": {
-        "@react-native-community/async-storage": "*",
+        "@react-native-async-storage/async-storage": "*",
         "react-native": "*"
     },
     "dependencies": {
