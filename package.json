@@ -1,6 +1,6 @@
 {
     "name": "react-async-storage",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Typescript enabled async storage for React and React Native",
     "keywords": [
         "async",
@@ -107,6 +107,8 @@
     "dependencies": {
         "@aveq-research/localforage-asyncstorage-driver": "^3.0.1",
         "compare-versions": "^3.6.0",
-        "lodash.merge": "^4.6.2"
+        "lodash.merge": "^4.6.2",
+        "@react-native-async-storage/async-storage": "*",
+        "react-native": "*"
     }
 }
