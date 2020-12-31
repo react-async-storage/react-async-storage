@@ -1,7 +1,7 @@
-import { CacheObject, StorageOptions } from './types'
-import { CacheRecord } from './record'
-import { CacheWrapper } from './wrapper'
 import { DEFAULTS } from './constants'
+import { StorageObject, StorageOptions } from './types'
+import { StorageRecord } from './record'
+import { StorageWrapper } from './wrapper'
 import { ValueError } from './errors'
 import { driverWithDefaultSerialization } from '@aveq-research/localforage-asyncstorage-driver'
 import localforage from 'localforage'
@@ -17,7 +17,7 @@ import semVer from 'compare-versions'
 */
 
 const state: {
-    wrappers: Record<string, CacheWrapper>
+    wrappers: Record<string, StorageWrapper>
     init: boolean
     rnDriverDefined: boolean
     namespace: string
@@ -31,18 +31,18 @@ const retrieveAndPruneRecords = async (
     allowStale: boolean,
     instance: LocalForage,
     version: string,
-): Promise<CacheRecord[]> => {
+): Promise<StorageRecord[]> => {
     const keys = await instance.keys()
     const promises = keys.map(
-        async (key) => await instance.getItem<CacheObject>(key),
+        async (key) => await instance.getItem<StorageObject>(key),
     )
     const retrievedItems = await Promise.all(promises)
-    const cacheObjects = retrievedItems.filter(
+    const StorageObjects = retrievedItems.filter(
         (item) => item !== null && typeof item === 'object',
-    ) as CacheObject[]
-    const records = cacheObjects.map(
+    ) as StorageObject[]
+    const records = StorageObjects.map(
         (item) =>
-            new CacheRecord(
+            new StorageRecord(
                 item.key,
                 item.version,
                 item.value,
@@ -69,7 +69,7 @@ export async function createCacheInstance({
     allowStale = DEFAULTS.ALLOW_STALE,
     preferCache = DEFAULTS.PREFER_CACHE,
     ...rest
-}: StorageOptions = {}): Promise<CacheWrapper> {
+}: StorageOptions = {}): Promise<StorageWrapper> {
     state.namespace = !state.init && namespace ? namespace : state.namespace
     const config: LocalForageOptions = {
         name: state.namespace,
@@ -103,7 +103,7 @@ export async function createCacheInstance({
         const cache = new Map(
             validRecords.map((record) => [record.key, record]),
         )
-        state.wrappers[storeName] = new CacheWrapper({
+        state.wrappers[storeName] = new StorageWrapper({
             allowStale,
             cache,
             instance,
@@ -144,7 +144,7 @@ export async function cacheFactory(
 
 export function getStorage(
     storeName: string = DEFAULTS.STORE_NAME,
-): CacheWrapper {
+): StorageWrapper {
     if (!Reflect.has(state.wrappers, storeName)) {
         throw new ValueError(`invalid storeName ${storeName}`)
     }

@@ -1,9 +1,9 @@
 /* eslint-disable unicorn/prefer-date-now */
-import { CacheObject, MaxAge, Setter, UpdateSetter } from './types'
+import { MaxAge, Setter, StorageObject, UpdateSetter } from './types'
 import { ValueError } from './errors'
 
 const now = (): number => new Date().getTime()
-export class CacheRecord<T = any> {
+export class StorageRecord<T = any> {
     public key: string
     public version: string
     public value: T
@@ -27,7 +27,7 @@ export class CacheRecord<T = any> {
         return !!this.expiration && this.expiration < now()
     }
 
-    toObject = (): CacheObject<T> => {
+    toObject = (): StorageObject<T> => {
         return {
             expiration: this.expiration,
             key: this.key,
@@ -76,13 +76,13 @@ export class CacheRecord<T = any> {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         this.value = typeof value === 'function' ? value(this.value) : value
     }
-    static from<T>(cacheObject: CacheObject<T>): CacheRecord<T> {
-        const record = new CacheRecord<T>(
-            cacheObject.key,
-            cacheObject.version,
-            cacheObject.value,
+    static from<T>(StorageObject: StorageObject<T>): StorageRecord<T> {
+        const record = new StorageRecord<T>(
+            StorageObject.key,
+            StorageObject.version,
+            StorageObject.value,
         )
-        record.expiration = cacheObject.expiration
+        record.expiration = StorageObject.expiration
         return record
     }
 }

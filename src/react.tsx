@@ -1,6 +1,6 @@
-import { CacheWrapper } from './wrapper'
 import { DEFAULTS } from './constants'
 import { StorageProviderProps } from './types'
+import { StorageWrapper } from './wrapper'
 import { ValueError } from './errors'
 import { cacheFactory } from './core'
 import React, {
@@ -12,7 +12,7 @@ import React, {
     useState,
 } from 'react'
 
-export const StorageContext = createContext<Record<string, CacheWrapper>>({})
+export const StorageContext = createContext<Record<string, StorageWrapper>>({})
 
 export function StorageProvider({
     onReady,
@@ -21,7 +21,7 @@ export function StorageProvider({
 }: PropsWithChildren<StorageProviderProps>): React.ReactElement {
     const isMountedRef = useRef(true)
     const [isLoaded, setIsLoaded] = useState(false)
-    const [wrappers, setWrappers] = useState<Record<string, CacheWrapper>>({})
+    const [wrappers, setWrappers] = useState<Record<string, StorageWrapper>>({})
     useEffect(() => {
         /* istanbul ignore next - its not worth the effort typing to test the branching here */
         if (isMountedRef.current) {
@@ -51,7 +51,7 @@ export function StorageProvider({
 
 export function useStorage(
     storeName: string = DEFAULTS.STORE_NAME,
-): CacheWrapper {
+): StorageWrapper {
     const context = useContext(StorageContext)
     if (!Reflect.has(context, storeName)) {
         throw new ValueError(`invalid storeName ${storeName}`)

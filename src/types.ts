@@ -1,19 +1,11 @@
-import { CacheRecord } from './record'
+import { StorageRecord } from './record'
 
-export type Cache = Map<string, CacheRecord>
-export interface CacheObject<T = any> {
+export type Cache = Map<string, StorageRecord>
+export interface StorageObject<T = any> {
     expiration?: number
     key: string
     value: T
     version: string
-}
-export interface StorageWrapperOptions {
-    instance: LocalForage
-    storeName: string
-    version: string
-    cache: Cache
-    allowStale: boolean
-    preferCache: boolean
 }
 
 export interface StorageOptions

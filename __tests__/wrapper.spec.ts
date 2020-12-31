@@ -1,14 +1,14 @@
 import {
     CacheError,
-    CacheRecord,
-    CacheWrapper,
+    StorageRecord,
+    StorageWrapper,
     createCacheInstance,
     dropCacheInstance,
 } from '../src'
 import merge from 'lodash.merge'
 
-describe('CacheWrapper tests', () => {
-    let wrapper: CacheWrapper
+describe('StorageWrapper tests', () => {
+    let wrapper: StorageWrapper
     beforeEach(async () => {
         wrapper = await createCacheInstance()
     })
@@ -64,12 +64,12 @@ describe('CacheWrapper tests', () => {
         })
         it('throws an error when stale value is returned and allowNull is false', async () => {
             try {
-                const record = new CacheRecord(
+                const record = new StorageRecord(
                     'testValue',
                     '1.0.0',
                     'someValue',
                 )
-                record.expiration = new Date().getTime() - 100
+                record.expiration = Date.now() - 100
                 await wrapper.instance.setItem('testValue', record.toObject())
                 await wrapper.getRecord('testValue', { allowNull: false })
             } catch (error) {
@@ -80,8 +80,8 @@ describe('CacheWrapper tests', () => {
             }
         })
         it('returns null when allowNull is true and stale value is returned', async () => {
-            const record = new CacheRecord('testValue', '1.0.0', 'someValue')
-            record.expiration = new Date().getTime() - 100
+            const record = new StorageRecord('testValue', '1.0.0', 'someValue')
+            record.expiration = Date.now() - 100
             await wrapper.instance.setItem('testValue', record.toObject())
             const retrievedRecord = await wrapper.getRecord('testValue')
             expect(retrievedRecord).toBeNull()

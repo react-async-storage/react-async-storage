@@ -1,32 +1,32 @@
-import { CacheRecord, TimeUnit, ValueError } from '../src'
+import { StorageRecord, TimeUnit, ValueError } from '../src'
 
-describe('CacheRecord tests', () => {
+describe('StorageRecord tests', () => {
     describe('constructor', () => {
         it('sets value when passed a function', () => {
             const setter = jest.fn(() => '123')
-            const record = new CacheRecord('testRecord', '1.0.0', setter)
+            const record = new StorageRecord('testRecord', '1.0.0', setter)
             expect(setter).toHaveBeenCalled()
             expect(record.value).toBe('123')
         })
         it('sets value when passed a regular value', () => {
-            const record = new CacheRecord('testRecord', '1.0.0', '123')
+            const record = new StorageRecord('testRecord', '1.0.0', '123')
             expect(record.value).toBe('123')
         })
         it('sets expiration when passed a number', () => {
-            const record = new CacheRecord('testRecord', '1.0.0', '123', 1)
+            const record = new StorageRecord('testRecord', '1.0.0', '123', 1)
             expect(record.expiration).toBeTruthy()
         })
         it('sets expiration when passed an array', () => {
-            const record = new CacheRecord('testRecord', '1.0.0', '123', [
+            const record = new StorageRecord('testRecord', '1.0.0', '123', [
                 1,
                 'day',
             ])
             expect(record.expiration).toBeTruthy()
         })
     })
-    let record: CacheRecord
+    let record: StorageRecord
     beforeEach(() => {
-        record = new CacheRecord('testRecord', '1.0.0', 'testValue')
+        record = new StorageRecord('testRecord', '1.0.0', 'testValue')
     })
     describe('setValue', () => {
         it('sets value when passed a function', () => {

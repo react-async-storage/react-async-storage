@@ -1,16 +1,9 @@
-import {
-    Cache,
-    MaxAge,
-    NodeCallBack,
-    Setter,
-    StorageWrapperOptions,
-    UpdateSetter,
-} from './types'
+import { Cache, MaxAge, NodeCallBack, Setter, UpdateSetter } from './types'
 import { CacheError } from './errors'
-import { CacheRecord } from './record'
+import { StorageRecord } from './record'
 import merge from 'lodash.merge'
 
-export class CacheWrapper {
+export class StorageWrapper {
     readonly allowStale: boolean
     readonly cache = new Map() as Cache
     readonly instance: LocalForage
@@ -18,7 +11,14 @@ export class CacheWrapper {
     readonly preferCache: boolean
     readonly version: string
 
-    constructor(options: StorageWrapperOptions) {
+    constructor(options: {
+        instance: LocalForage
+        storeName: string
+        version: string
+        cache: Cache
+        allowStale: boolean
+        preferCache: boolean
+    }) {
         this.allowStale = options.allowStale
         this.cache = options.cache
         this.instance = options.instance
@@ -37,10 +37,10 @@ export class CacheWrapper {
             allowNull = true,
             preferCache = this.preferCache,
         }: { allowNull?: boolean; preferCache?: boolean } = {},
-    ): Promise<CacheRecord<T> | null> {
+    ): Promise<StorageRecord<T> | null> {
         let record = (this.hasItem(key) && preferCache
             ? this.cache.get(key)
-            : await this.instance.getItem(key)) as CacheRecord<T> | null
+            : await this.instance.getItem(key)) as StorageRecord<T> | null
         if (record === null) {
             if (!allowNull) {
                 throw new CacheError(`null value returned for key ${key}`)
@@ -48,7 +48,9 @@ export class CacheWrapper {
             return null
         }
         record =
-            record instanceof CacheRecord ? record : CacheRecord.from(record)
+            record instanceof StorageRecord
+                ? record
+                : StorageRecord.from(record)
         if (record.isStale()) {
             await this.removeItem(key)
             if (!allowNull) {
@@ -68,11 +70,11 @@ export class CacheWrapper {
             maxAge?: MaxAge
             version?: string
         } | null,
-        callback?: NodeCallBack<CacheRecord<T>>,
-    ): Promise<CacheRecord<T>> {
+        callback?: NodeCallBack<StorageRecord<T>>,
+    ): Promise<StorageRecord<T>> {
         const record = (await this.getRecord(key, {
             allowNull: false,
-        })) as CacheRecord<T>
+        })) as StorageRecord<T>
         if (options?.value) {
             record.setValue(options.value)
         }
@@ -131,10 +133,15 @@ export class CacheWrapper {
         key: string,
         value: Setter<T> | T,
         maxAge?: MaxAge,
-        callback?: NodeCallBack<CacheRecord<T>>,
+        callback?: NodeCallBack<StorageRecord<T>>,
     ): Promise<void> {
         try {
-            const record = new CacheRecord<T>(key, this.version, value, maxAge)
+            const record = new StorageRecord<T>(
+                key,
+                this.version,
+                value,
+                maxAge,
+            )
             await this.instance.setItem(key, record.toObject())
             this.cache.set(key, record)
             if (callback) {
@@ -240,9 +247,9 @@ export class CacheWrapper {
 
     async getRecords(
         preferCache = true,
-        callback?: NodeCallBack<CacheRecord[]>,
-    ): Promise<CacheRecord[]> {
-        let records: CacheRecord[] = []
+        callback?: NodeCallBack<StorageRecord[]>,
+    ): Promise<StorageRecord[]> {
+        let records: StorageRecord[] = []
         try {
             const keys = await this.keys()
             if (keys.length) {
@@ -251,7 +258,7 @@ export class CacheWrapper {
                 )
                 records = (await Promise.all(promises)).filter(
                     (record) => !!record,
-                ) as CacheRecord[]
+                ) as StorageRecord[]
             }
             if (callback) {
                 callback(null, records)

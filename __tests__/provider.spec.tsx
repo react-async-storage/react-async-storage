@@ -1,10 +1,10 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import '@testing-library/jest-dom/extend-expect'
 import {
-    CacheWrapper,
     DEFAULTS,
     StorageOptions,
     StorageProvider,
+    StorageWrapper,
     ValueError,
     dropCacheInstance,
     useStorage,
@@ -20,7 +20,7 @@ const NestedComponent = (props: {
     cb: (wrappers: any) => void
     errorCb?: (error: any) => void
 }): React.ReactElement => {
-    let caches: CacheWrapper[] | undefined
+    let caches: StorageWrapper[] | undefined
     if (props.isLoaded) {
         try {
             caches = props.storeName
@@ -68,15 +68,15 @@ describe('Provider tests', () => {
     const customName = 'customName'
     describe('useStorage hook tests', () => {
         it('retrieves cache wrapper instances correctly', async () => {
-            let wrappers: CacheWrapper[]
-            const cb = (val: CacheWrapper[]) => {
+            let wrappers: StorageWrapper[]
+            const cb = (val: StorageWrapper[]) => {
                 wrappers = val
             }
             const { getByTestId } = render(<TestWrapper cb={cb} />)
             await act(async () => Promise.resolve())
             //@ts-ignore
             for (const wrapper of wrappers) {
-                expect(wrapper).toBeInstanceOf(CacheWrapper)
+                expect(wrapper).toBeInstanceOf(StorageWrapper)
             }
             expect(getByTestId(TEST_ID)).toHaveTextContent(DEFAULTS.STORE_NAME)
             await dropCacheInstance()
@@ -99,8 +99,8 @@ describe('Provider tests', () => {
         })
     })
     it('creates a custom instance correctly', async () => {
-        let wrappers: CacheWrapper[]
-        const cb = (val: CacheWrapper[]) => {
+        let wrappers: StorageWrapper[]
+        const cb = (val: StorageWrapper[]) => {
             wrappers = val
         }
         const { getByTestId } = render(
@@ -113,14 +113,14 @@ describe('Provider tests', () => {
         await act(async () => Promise.resolve())
         //@ts-ignore
         for (const wrapper of wrappers) {
-            expect(wrapper).toBeInstanceOf(CacheWrapper)
+            expect(wrapper).toBeInstanceOf(StorageWrapper)
         }
         expect(getByTestId(TEST_ID)).toHaveTextContent(customName)
         await dropCacheInstance(customName)
     })
     it('creates multiple custom instances correctly', async () => {
-        let wrappers: CacheWrapper[]
-        const cb = (val: CacheWrapper[]) => {
+        let wrappers: StorageWrapper[]
+        const cb = (val: StorageWrapper[]) => {
             wrappers = val
         }
         const { getByTestId } = render(
@@ -137,7 +137,7 @@ describe('Provider tests', () => {
         await act(async () => Promise.resolve())
         //@ts-ignore
         for (const wrapper of wrappers) {
-            expect(wrapper).toBeInstanceOf(CacheWrapper)
+            expect(wrapper).toBeInstanceOf(StorageWrapper)
         }
         expect(getByTestId(TEST_ID)).toHaveTextContent(
             [customName, 'customName2', 'customName3'].join(','),

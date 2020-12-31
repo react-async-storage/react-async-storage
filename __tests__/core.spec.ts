@@ -1,7 +1,7 @@
 import {
-    CacheRecord,
-    CacheWrapper,
     DEFAULTS,
+    StorageRecord,
+    StorageWrapper,
     ValueError,
     cacheFactory,
     createCacheInstance,
@@ -11,7 +11,7 @@ import {
 import localForage from 'localforage'
 
 describe('createCacheInstance tests', () => {
-    let wrapper: CacheWrapper
+    let wrapper: StorageWrapper
     let dropInstanceAfterTest: boolean
     beforeEach(() => {
         dropInstanceAfterTest = true
@@ -143,8 +143,8 @@ describe('createCacheInstance tests', () => {
             ])
         })
         it('prunes old versioned records correctly', async () => {
-            const record1 = new CacheRecord('currentRecord', '1.0.0', 1)
-            const record2 = new CacheRecord('oldRecord', '0.0.5', 2)
+            const record1 = new StorageRecord('currentRecord', '1.0.0', 1)
+            const record2 = new StorageRecord('oldRecord', '0.0.5', 2)
             let instance = localForage.createInstance({
                 name: 'ReactAsyncStorage',
                 storeName: 'defaultStore',
@@ -278,7 +278,7 @@ describe('dropCacheInstance tests', () => {
 })
 
 describe('getStorage tests', () => {
-    it('retrieves cacheRecords correctly', async () => {
+    it('retrieves StorageRecords correctly', async () => {
         await cacheFactory([
             { storeName: 'store1' },
             { storeName: 'store2' },
@@ -287,9 +287,9 @@ describe('getStorage tests', () => {
         const store1 = getStorage('store1')
         const store2 = getStorage('store2')
         const store3 = getStorage('store3')
-        expect(store1).toBeInstanceOf(CacheWrapper)
-        expect(store2).toBeInstanceOf(CacheWrapper)
-        expect(store3).toBeInstanceOf(CacheWrapper)
+        expect(store1).toBeInstanceOf(StorageWrapper)
+        expect(store2).toBeInstanceOf(StorageWrapper)
+        expect(store3).toBeInstanceOf(StorageWrapper)
         await dropCacheInstance('store1')
         await dropCacheInstance('store2')
         await dropCacheInstance('store3')
@@ -297,7 +297,7 @@ describe('getStorage tests', () => {
     it('retireves default cache namespace correctly', async () => {
         await createCacheInstance()
         const store = getStorage()
-        expect(store).toBeInstanceOf(CacheWrapper)
+        expect(store).toBeInstanceOf(StorageWrapper)
         expect(store.storeName).toBe(DEFAULTS.STORE_NAME)
     })
     it('throws ValueError for invalid storename', async () => {
